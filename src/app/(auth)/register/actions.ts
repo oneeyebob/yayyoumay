@@ -1,6 +1,7 @@
 'use server'
 
 import bcrypt from 'bcryptjs'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 
 // Accounts have no real email — the Supabase auth email is a deterministic fake
@@ -44,6 +45,10 @@ export async function registerUser(params: {
   if (settingsError) {
     return { error: 'Konto oprettet, men indstillinger kunne ikke gemmes. Kontakt support.' }
   }
+
+  // Clear any stale junior profile selection from a previous session
+  const cookieStore = await cookies()
+  cookieStore.delete('active_profile_id')
 
   return { error: null }
 }

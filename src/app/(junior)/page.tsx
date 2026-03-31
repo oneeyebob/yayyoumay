@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import ProfilePicker from '@/components/shared/ProfilePicker'
 import SwitchProfileButton from './SwitchProfileButton'
+import StaleCookieClearer from './StaleCookieClearer'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -69,9 +70,18 @@ export default async function JuniorPage() {
     ? profiles.find((p) => p.id === activeProfileId) ?? null
     : null
 
+  // Cookie was set but doesn't belong to this user (e.g. leftover from a
+  // different account). Show the picker and silently clear the stale cookie.
+  const isStale = activeProfileId !== null && activeProfile === null
+
   // 4. No valid profile selected → show picker
   if (!activeProfile) {
-    return <ProfilePicker profiles={profiles} />
+    return (
+      <>
+        {isStale && <StaleCookieClearer />}
+        <ProfilePicker profiles={profiles} />
+      </>
+    )
   }
 
   // 5. Load feed: yay'd list_items for this profile's lists

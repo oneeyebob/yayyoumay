@@ -13,6 +13,45 @@ export async function searchAction(
   return searchYouTube(query, { maxResults: 20, ...options })
 }
 
+// ── Lists (for yay picker) ────────────────────────────────────────────────────
+
+export interface ListOption {
+  id: string
+  name: string
+  profileName: string
+}
+
+export async function getLists(): Promise<ListOption[]> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, name')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: true })
+
+  if (!profiles?.length) return []
+
+  const profileMap = new Map(profiles.map((p) => [p.id, p.name]))
+  const profileIds = profiles.map((p) => p.id)
+
+  const { data: lists } = await supabase
+    .from('lists')
+    .select('id, name, profile_id')
+    .in('profile_id', profileIds)
+    .order('created_at', { ascending: true })
+
+  return (lists ?? []).map((l) => ({
+    id: l.id,
+    name: l.name,
+    profileName: profileMap.get(l.profile_id) ?? '—',
+  }))
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 async function getOrCreateDefaultList(
@@ -117,6 +156,7 @@ export interface YayNayParams {
   channelId?: string    // YouTube channel ID — required for videos
   channelTitle?: string // required for videos so we can populate channels table
   status: 'yay' | 'nay'
+  listId?: string       // explicit list — if omitted falls back to default/auto-create
 }
 
 export async function yayNayAction(
@@ -124,7 +164,14 @@ export async function yayNayAction(
 ): Promise<{ error: string | null }> {
   const supabase = await createClient()
 
-  const list = await getOrCreateDefaultList(supabase)
+  let list: { id: string } | null = null
+
+  if (params.listId) {
+    list = { id: params.listId }
+  } else {
+    list = await getOrCreateDefaultList(supabase)
+  }
+
   if (!list) return { error: 'Kunne ikke finde eller oprette en liste.' }
 
   if (params.type === 'channel') {

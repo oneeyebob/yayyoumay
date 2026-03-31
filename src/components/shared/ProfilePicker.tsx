@@ -63,10 +63,7 @@ export default function ProfilePicker({ profiles }: ProfilePickerProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-6 py-12">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2 text-center">Hvem ser?</h1>
-      <p className="text-sm text-gray-500 mb-10 text-center">Vælg din profil</p>
-
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-6">
       <div className="grid grid-cols-2 gap-6 w-full max-w-xs sm:max-w-sm">
         {profiles.map((profile, index) => {
           const bg = avatarColor(profile, index)
@@ -106,3 +103,4 @@ export default function ProfilePicker({ profiles }: ProfilePickerProps) {
     </div>
   )
 }
+

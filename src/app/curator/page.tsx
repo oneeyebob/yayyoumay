@@ -34,25 +34,9 @@ export default async function CuratorPage() {
       <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
 
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">Hej {username} 👋</h1>
-            <p className="text-xs text-gray-400 mt-0.5">Kuratormode</p>
-          </div>
-          <nav className="flex gap-2">
-            <Link
-              href="/curator/profiles"
-              className="rounded-lg bg-white border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-blue-300 hover:text-blue-600 transition-colors"
-            >
-              👤 Profiler
-            </Link>
-            <Link
-              href="/curator/lists"
-              className="rounded-lg bg-white border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-blue-300 hover:text-blue-600 transition-colors"
-            >
-              📋 Lister
-            </Link>
-          </nav>
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Hej {username} 👋</h1>
+          <p className="text-xs text-gray-400 mt-0.5">Kuratormode</p>
         </div>
 
         {/* Search + results */}

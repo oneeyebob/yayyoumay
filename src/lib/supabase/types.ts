@@ -189,6 +189,7 @@ export type Database = {
       }
       lists: {
         Row: {
+          age_filter: string | null
           created_at: string
           description: string | null
           id: string
@@ -198,6 +199,7 @@ export type Database = {
           profile_id: string
         }
         Insert: {
+          age_filter?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -207,6 +209,7 @@ export type Database = {
           profile_id: string
         }
         Update: {
+          age_filter?: string | null
           created_at?: string
           description?: string | null
           id?: string

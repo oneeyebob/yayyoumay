@@ -37,8 +37,7 @@ export default function RootLayout({
           </form>
           <Link href="/curator" className="text-gray-400 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors shrink-0">Kuratormode</Link>
           <Link href="/curator/profiles" className="text-gray-400 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors shrink-0">Profiler</Link>
-          <Link href="/curator/lists" className="text-gray-400 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors shrink-0">Lister</Link>
-          <span className="ml-auto shrink-0">
+<span className="ml-auto shrink-0">
             <form action={logoutAction}>
               <button type="submit" className="text-gray-500 hover:text-red-400 px-2 py-1 rounded hover:bg-white/10 transition-colors">
                 Log ud

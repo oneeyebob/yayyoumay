@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createProfile, updateProfile, deleteProfile } from './actions'
 
@@ -353,12 +354,12 @@ export default function ProfilesUI({ profiles }: { profiles: ProfileRow[] }) {
                 </div>
 
                 <div className="flex gap-1.5 shrink-0">
-                  <button
-                    onClick={() => openEdit(profile)}
+                  <Link
+                    href={`/curator/profiles/${profile.id}`}
                     className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors"
                   >
                     Rediger
-                  </button>
+                  </Link>
                   <button
                     onClick={() => setDeleteId(deleteId === profile.id ? null : profile.id)}
                     className="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors"

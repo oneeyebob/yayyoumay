@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,7 +28,16 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {/* DEV NAV — remove before launch */}
+        <nav className="sticky top-0 z-50 flex items-center gap-1 bg-gray-950/90 backdrop-blur px-3 py-1.5 text-xs overflow-x-auto shrink-0">
+          <Link href="/" className="font-bold text-white mr-3 shrink-0">YayYouMay</Link>
+          <Link href="/curator" className="text-gray-400 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors shrink-0">Kuratormode</Link>
+          <Link href="/curator/profiles" className="text-gray-400 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors shrink-0">Profiler</Link>
+          <Link href="/curator/lists" className="text-gray-400 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors shrink-0">Lister</Link>
+        </nav>
+        {children}
+      </body>
     </html>
   );
 }

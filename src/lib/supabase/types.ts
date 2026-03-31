@@ -277,20 +277,26 @@ export type Database = {
         Row: {
           created_at: string
           curator_pin_hash: string | null
+          hotkey_hash: string | null
           id: string
           user_id: string
+          username: string | null
         }
         Insert: {
           created_at?: string
           curator_pin_hash?: string | null
+          hotkey_hash?: string | null
           id?: string
           user_id: string
+          username?: string | null
         }
         Update: {
           created_at?: string
           curator_pin_hash?: string | null
+          hotkey_hash?: string | null
           id?: string
           user_id?: string
+          username?: string | null
         }
         Relationships: []
       }

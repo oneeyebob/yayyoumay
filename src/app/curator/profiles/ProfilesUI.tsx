@@ -241,6 +241,10 @@ function DeleteConfirm({
 }
 
 // ── Main UI ───────────────────────────────────────────────────────────────────
+//
+// Profiles represent people in the household (e.g. children), NOT the account
+// holder. Each profile gets its own curated content list. The account holder
+// is the curator who approves/rejects content for each profile.
 
 export default function ProfilesUI({ profiles }: { profiles: ProfileRow[] }) {
   const [formState, setFormState] = useState<FormState | null>(null)
@@ -303,10 +307,21 @@ export default function ProfilesUI({ profiles }: { profiles: ProfileRow[] }) {
       )}
 
       {profiles.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-3xl mb-3">👤</p>
-          <p className="text-gray-700 font-medium mb-1">Ingen profiler endnu</p>
-          <p className="text-sm text-gray-400">Tilføj den første profil til husstanden.</p>
+        <div className="text-center py-14">
+          <p className="text-5xl mb-4">👨‍👩‍👧‍👦</p>
+          <p className="text-xl font-bold text-gray-900 mb-2">Opret din første profil</p>
+          <p className="text-sm text-gray-500 mb-6 max-w-xs mx-auto">
+            Profiler er personer i husstanden — f.eks. dine børn. Hver profil får sit eget godkendte indhold.
+          </p>
+          <button
+            onClick={openCreate}
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+            </svg>
+            Opret første profil
+          </button>
         </div>
       ) : (
         <ul className="space-y-3">

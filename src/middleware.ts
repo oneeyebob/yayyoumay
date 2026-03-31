@@ -49,6 +49,27 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Onboarding guard — if the user is authenticated but has no profiles yet,
+  // send them to /curator/profiles to create their first household profile.
+  // Profiles represent people in the household (children, etc.), not the account holder.
+  // Skip this check on pages that are part of the setup flow itself.
+  const isSetupRoute =
+    pathname.startsWith('/curator/profiles') ||
+    pathname.startsWith('/curator/pin-setup') ||
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/register')
+
+  if (session && !isSetupRoute) {
+    const { count } = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', session.user.id)
+
+    if (count === 0) {
+      return NextResponse.redirect(new URL('/curator/profiles', request.url))
+    }
+  }
+
   return response
 }
 

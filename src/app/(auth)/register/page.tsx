@@ -8,7 +8,6 @@ export default function RegisterPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -44,16 +43,8 @@ export default function RegisterPage() {
 
     const userId = data.user.id
 
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({ user_id: userId, name: username })
-
-    if (profileError) {
-      setError('Account created but failed to save profile. Please contact support.')
-      setLoading(false)
-      return
-    }
-
+    // Profiles are created manually on /curator/profiles — one per household member.
+    // We only insert the user_settings row here (holds the curator PIN hash).
     const { error: settingsError } = await supabase
       .from('user_settings')
       .insert({ user_id: userId, curator_pin_hash: null })
@@ -64,7 +55,8 @@ export default function RegisterPage() {
       return
     }
 
-    router.push('/curator/pin-setup')
+    // Send the user to the profiles page to create their first household profile.
+    router.push('/curator/profiles')
   }
 
   return (
@@ -75,22 +67,6 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Username */}
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              required
-              autoComplete="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="e.g. jakob"
-            />
-          </div>
-
           {/* Security email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">

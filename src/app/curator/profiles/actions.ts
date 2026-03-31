@@ -12,10 +12,19 @@ async function getCurrentUserId(): Promise<string | null> {
 export async function createProfile(params: {
   name: string
   avatarColor: string
-}): Promise<{ error: string | null }> {
+}): Promise<{ error: string | null; firstProfile: boolean }> {
   const supabase = await createClient()
   const userId = await getCurrentUserId()
-  if (!userId) return { error: 'Ikke logget ind.' }
+  if (!userId) return { error: 'Ikke logget ind.', firstProfile: false }
+
+  // Check whether this is the user's very first profile so the UI can
+  // redirect them to /curator/pin-setup to complete onboarding.
+  const { count } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+
+  const firstProfile = count === 0
 
   const { error } = await supabase.from('profiles').insert({
     user_id: userId,
@@ -23,10 +32,10 @@ export async function createProfile(params: {
     avatar_color: params.avatarColor,
   })
 
-  if (error) return { error: 'Kunne ikke oprette profil.' }
+  if (error) return { error: 'Kunne ikke oprette profil.', firstProfile: false }
 
   revalidatePath('/curator/profiles')
-  return { error: null }
+  return { error: null, firstProfile }
 }
 
 export async function updateProfile(params: {

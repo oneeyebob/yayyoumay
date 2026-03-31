@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createProfile, updateProfile, deleteProfile } from './actions'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -247,6 +248,7 @@ function DeleteConfirm({
 // is the curator who approves/rejects content for each profile.
 
 export default function ProfilesUI({ profiles }: { profiles: ProfileRow[] }) {
+  const router = useRouter()
   const [formState, setFormState] = useState<FormState | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -267,11 +269,20 @@ export default function ProfilesUI({ profiles }: { profiles: ProfileRow[] }) {
   }
 
   async function handleSave(values: FormState) {
-    const result = values.id
-      ? await updateProfile({ id: values.id, name: values.name, avatarColor: values.avatarColor })
-      : await createProfile({ name: values.name, avatarColor: values.avatarColor })
-
-    if (result.error) { setGlobalError(result.error); return }
+    if (values.id) {
+      // Editing an existing profile
+      const result = await updateProfile({ id: values.id, name: values.name, avatarColor: values.avatarColor })
+      if (result.error) { setGlobalError(result.error); return }
+    } else {
+      // Creating a new profile
+      const result = await createProfile({ name: values.name, avatarColor: values.avatarColor })
+      if (result.error) { setGlobalError(result.error); return }
+      // First-ever profile → continue to PIN setup to complete onboarding
+      if (result.firstProfile) {
+        router.push('/curator/pin-setup')
+        return
+      }
+    }
     setFormState(null)
     setGlobalError(null)
   }

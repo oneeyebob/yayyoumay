@@ -4,7 +4,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import ProfilePicker from '@/components/shared/ProfilePicker'
-import SwitchProfileButton from './SwitchProfileButton'
 import StaleCookieClearer from './StaleCookieClearer'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -118,15 +117,12 @@ export default async function JuniorPage() {
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
         <span className="font-bold text-gray-900">{activeProfile.name}</span>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/curator"
-            className="text-xs text-gray-500 hover:text-gray-800 bg-white border border-gray-200 rounded-full px-3 py-1 transition-colors"
-          >
-            🎛 Kuratormode
-          </Link>
-          <SwitchProfileButton />
-        </div>
+        <Link
+          href="/curator"
+          className="text-xs text-gray-500 hover:text-gray-800 bg-white border border-gray-200 rounded-full px-3 py-1 transition-colors"
+        >
+          🎛 Kuratormode
+        </Link>
       </header>
 
       {/* Feed */}

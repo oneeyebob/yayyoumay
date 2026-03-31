@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { createList, updateList, deleteList } from './actions'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -341,7 +342,12 @@ export default function ListsUI({
               {/* Card header */}
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-semibold text-gray-900 truncate">{list.name}</p>
+                  <Link
+                    href={`/curator/lists/${list.id}`}
+                    className="font-semibold text-gray-900 hover:text-blue-600 truncate block transition-colors"
+                  >
+                    {list.name}
+                  </Link>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
                     <span className="text-xs text-gray-500">👤 {list.profileName}</span>
                     <span className="text-xs text-gray-300">·</span>

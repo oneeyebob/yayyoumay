@@ -34,16 +34,8 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // / — redirect based on session presence
+  // / — redirect to /login if no session; authenticated users stay on /
   if (pathname === '/') {
-    if (session) {
-      return NextResponse.redirect(new URL('/junior', request.url))
-    }
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  // /junior/* — requires an active session
-  if (pathname.startsWith('/junior')) {
     if (!session) {
       return NextResponse.redirect(new URL('/login', request.url))
     }

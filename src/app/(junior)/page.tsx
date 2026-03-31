@@ -3,31 +3,39 @@ import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { getChannelVideos } from '@/lib/youtube/client'
 import ProfilePicker from '@/components/shared/ProfilePicker'
 import StaleCookieClearer from './StaleCookieClearer'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-interface FeedChannel {
-  id: string
-  yt_channel_id: string
-  name: string
-  thumbnail_url: string | null
-}
-
 interface FeedVideo {
-  id: string
-  yt_video_id: string
+  ytVideoId: string
   title: string
-  thumbnail_url: string | null
+  thumbnailUrl: string | null
 }
 
-interface FeedItem {
+// Raw Supabase row shapes (cast via as unknown as)
+interface RawYayItem {
   id: string
   channel_id: string | null
   video_id: string | null
-  channel: FeedChannel | null
-  video: FeedVideo | null
+  channel: {
+    id: string
+    yt_channel_id: string
+    name: string
+    thumbnail_url: string | null
+  } | null
+  video: {
+    id: string
+    yt_video_id: string
+    title: string
+    thumbnail_url: string | null
+  } | null
+}
+
+interface RawNayVideoItem {
+  video: { yt_video_id: string } | null
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
@@ -83,7 +91,7 @@ export default async function JuniorPage() {
     )
   }
 
-  // 5. Load feed: yay'd list_items for this profile's lists
+  // 5. Load this profile's list IDs
   const { data: lists } = await supabase
     .from('lists')
     .select('id')
@@ -91,10 +99,11 @@ export default async function JuniorPage() {
 
   const listIds = lists?.map((l) => l.id) ?? []
 
-  let feedItems: FeedItem[] = []
+  let feedVideos: FeedVideo[] = []
 
   if (listIds.length > 0) {
-    const { data: rawItems } = await supabase
+    // 6a. Load all yay'd list items (channels + videos)
+    const { data: rawYayItems } = await supabase
       .from('list_items')
       .select(`
         id,
@@ -107,7 +116,71 @@ export default async function JuniorPage() {
       .eq('status', 'yay')
       .order('created_at', { ascending: false })
 
-    feedItems = (rawItems ?? []) as unknown as FeedItem[]
+    const yayItems = (rawYayItems ?? []) as unknown as RawYayItem[]
+
+    // 6b. Load nay'd video yt_video_ids so we can exclude them from channel feeds
+    const { data: rawNayVideos } = await supabase
+      .from('list_items')
+      .select('video:videos(yt_video_id)')
+      .in('list_id', listIds)
+      .eq('status', 'nay')
+      .not('video_id', 'is', null)
+
+    const nayYtVideoIds = new Set<string>(
+      ((rawNayVideos ?? []) as unknown as RawNayVideoItem[])
+        .map((i) => i.video?.yt_video_id)
+        .filter((id): id is string => !!id)
+    )
+
+    // 6c. Partition yay items into channels vs videos
+    const yayChannelItems = yayItems.filter((i) => i.channel_id && !i.video_id)
+    const yayVideoItems = yayItems.filter((i) => i.video_id)
+
+    // 6d. Build explicit yay'd video cards (stored in DB, already curated)
+    const explicitVideos: FeedVideo[] = yayVideoItems
+      .map((i) => i.video)
+      .filter((v): v is NonNullable<RawYayItem['video']> => v !== null && !!v.yt_video_id)
+      .filter((v) => !nayYtVideoIds.has(v.yt_video_id))
+      .map((v) => ({
+        ytVideoId: v.yt_video_id,
+        title: v.title,
+        thumbnailUrl: v.thumbnail_url,
+      }))
+
+    // 6e. Fetch latest videos from each yay'd channel via YouTube API (in parallel).
+    //     Nay'd videos are filtered out even if their channel is yay'd.
+    const channelVideoArrays = await Promise.all(
+      yayChannelItems.map(async (item) => {
+        const ch = Array.isArray(item.channel) ? item.channel[0] : item.channel
+        if (!ch?.yt_channel_id) return []
+        try {
+          const result = await getChannelVideos(ch.yt_channel_id, 20)
+          return result.videos
+            .filter((v) => !nayYtVideoIds.has(v.id))
+            .map((v) => ({
+              ytVideoId: v.id,
+              title: v.title,
+              thumbnailUrl: v.thumbnail.url,
+            }))
+        } catch {
+          // Quota exhausted, network error, etc. — degrade gracefully
+          return []
+        }
+      })
+    )
+
+    const channelVideos: FeedVideo[] = channelVideoArrays.flat()
+
+    // 6f. Merge: explicit yay'd videos first, then channel-fetched videos.
+    //     Deduplicate by ytVideoId so a video yay'd AND from a yay'd channel
+    //     only appears once.
+    const seen = new Set<string>()
+    for (const v of [...explicitVideos, ...channelVideos]) {
+      if (!seen.has(v.ytVideoId)) {
+        seen.add(v.ytVideoId)
+        feedVideos.push(v)
+      }
+    }
   }
 
   // ── Render feed ────────────────────────────────────────────────────────────
@@ -127,7 +200,7 @@ export default async function JuniorPage() {
 
       {/* Feed */}
       <div className="px-4 py-6">
-        {feedItems.length === 0 ? (
+        {feedVideos.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <p className="text-4xl mb-4">🎬</p>
             <p className="text-gray-700 font-medium mb-1">Ingen videoer endnu</p>
@@ -137,19 +210,9 @@ export default async function JuniorPage() {
           </div>
         ) : (
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {feedItems.map((item) => {
-              if (item.video && item.video.yt_video_id) {
-                return (
-                  <VideoCard key={item.id} video={item.video} />
-                )
-              }
-              if (item.channel && item.channel.yt_channel_id) {
-                return (
-                  <ChannelCard key={item.id} channel={item.channel} />
-                )
-              }
-              return null
-            })}
+            {feedVideos.map((video) => (
+              <VideoCard key={video.ytVideoId} video={video} />
+            ))}
           </ul>
         )}
       </div>
@@ -157,20 +220,20 @@ export default async function JuniorPage() {
   )
 }
 
-// ── Feed cards ────────────────────────────────────────────────────────────────
+// ── Feed card ─────────────────────────────────────────────────────────────────
 
 function VideoCard({ video }: { video: FeedVideo }) {
   return (
     <li>
       <Link
-        href={`/watch/${video.yt_video_id}`}
+        href={`/watch/${video.ytVideoId}`}
         className="block rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow group"
       >
         {/* Thumbnail */}
         <div className="relative aspect-video bg-gray-200">
-          {video.thumbnail_url ? (
+          {video.thumbnailUrl ? (
             <Image
-              src={video.thumbnail_url}
+              src={video.thumbnailUrl}
               alt={video.title}
               fill
               sizes="(max-width: 640px) 50vw, 33vw"
@@ -195,41 +258,6 @@ function VideoCard({ video }: { video: FeedVideo }) {
           <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-snug">
             {video.title}
           </p>
-        </div>
-      </Link>
-    </li>
-  )
-}
-
-function ChannelCard({ channel }: { channel: FeedChannel }) {
-  return (
-    <li>
-      <Link
-        href={`/channel/${channel.yt_channel_id}`}
-        className="block rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow group"
-      >
-        {/* Thumbnail */}
-        <div className="relative aspect-square bg-gray-200">
-          {channel.thumbnail_url ? (
-            <Image
-              src={channel.thumbnail_url}
-              alt={channel.name}
-              fill
-              sizes="(max-width: 640px) 50vw, 33vw"
-              className="object-cover"
-              unoptimized
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-3xl">📺</div>
-          )}
-        </div>
-
-        {/* Name + label */}
-        <div className="px-2.5 py-2">
-          <p className="text-xs font-medium text-gray-900 truncate leading-snug">
-            {channel.name}
-          </p>
-          <p className="text-[10px] text-gray-400 mt-0.5">Kanal</p>
         </div>
       </Link>
     </li>

@@ -274,6 +274,27 @@ export async function yayNayAction(
   return { error: null }
 }
 
+// ── Keyword blacklist ─────────────────────────────────────────────────────────
+
+/**
+ * Returns all blacklisted keywords for the current user, ordered by creation
+ * date. Used by SearchUI and BrowseUI to filter results client-side.
+ */
+export async function getKeywords(): Promise<Array<{ id: string; keyword: string }>> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data } = await supabase
+    .from('keyword_blacklist')
+    .select('id, keyword')
+    .order('created_at', { ascending: true })
+
+  return data ?? []
+}
+
 // ── Browse: fetch existing decisions ─────────────────────────────────────────
 
 /**

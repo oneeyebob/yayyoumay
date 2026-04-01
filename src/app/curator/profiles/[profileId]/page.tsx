@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import ProfileDetailUI, { type ProfileData, type ListData, type ItemRow } from './ProfileDetailUI'
+import ProfileDetailUI, { type ProfileData, type ListData, type ItemRow, type KeywordRow } from './ProfileDetailUI'
 
 export default async function ProfileDetailPage({
   params,
@@ -84,6 +84,14 @@ export default async function ProfileDetailPage({
     })
   }
 
+  // Load keyword blacklist for this user (per-user, not per-profile)
+  const { data: keywordRows } = await supabase
+    .from('keyword_blacklist')
+    .select('id, keyword')
+    .order('created_at', { ascending: true })
+
+  const keywords: KeywordRow[] = keywordRows ?? []
+
   const profileData: ProfileData = {
     id: profile.id,
     name: profile.name,
@@ -108,7 +116,7 @@ export default async function ProfileDetailPage({
           Profiler
         </Link>
 
-        <ProfileDetailUI profile={profileData} list={listData} items={items} />
+        <ProfileDetailUI profile={profileData} list={listData} items={items} keywords={keywords} />
       </div>
     </main>
   )

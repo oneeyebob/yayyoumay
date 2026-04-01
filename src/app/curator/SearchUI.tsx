@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import Image from 'next/image'
-import { searchAction } from './actions'
+import { searchAction, getKeywords } from './actions'
 import YayNayButtons from '@/components/shared/YayNayButtons'
 import VideoPreviewModal from '@/components/shared/VideoPreviewModal'
 import type { YouTubeSearchResult } from '@/lib/youtube/types'
@@ -18,6 +18,19 @@ export default function SearchUI() {
   const [searched, setSearched] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [preview, setPreview] = useState<PreviewState | null>(null)
+  const [keywords, setKeywords] = useState<string[]>([])
+
+  // Load blacklist once on mount
+  useEffect(() => {
+    getKeywords().then((kws) => setKeywords(kws.map((k) => k.keyword)))
+  }, [])
+
+  // Apply blacklist filter to raw results
+  const lowerKws = keywords.map((k) => k.toLowerCase())
+  const visibleResults = results.filter(
+    (r) => !lowerKws.some((kw) => r.title.toLowerCase().includes(kw))
+  )
+  const hiddenCount = results.length - visibleResults.length
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -81,16 +94,24 @@ export default function SearchUI() {
         )}
 
         {/* Empty state */}
-        {!isPending && searched && results.length === 0 && (
+        {!isPending && searched && visibleResults.length === 0 && (
           <p className="text-sm text-gray-500 text-center py-6">
-            Ingen resultater for &ldquo;{query}&rdquo;.
+            Ingen resultater for &ldquo;{query}&rdquo;
+            {hiddenCount > 0 ? ` (${hiddenCount} skjult af ordfilter)` : '.'}
+          </p>
+        )}
+
+        {/* Blacklist notice */}
+        {!isPending && hiddenCount > 0 && visibleResults.length > 0 && (
+          <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            🚫 {hiddenCount} {hiddenCount === 1 ? 'resultat skjult' : 'resultater skjult'} pga. ordfilter
           </p>
         )}
 
         {/* Results */}
-        {!isPending && results.length > 0 && (
+        {!isPending && visibleResults.length > 0 && (
           <ul className="space-y-3">
-            {results.map((result) => (
+            {visibleResults.map((result) => (
               <li
                 key={`${result.kind}-${result.id}`}
                 className="flex gap-3 rounded-xl bg-white border border-gray-100 shadow-sm p-3"

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { searchAction, yayNayAction, getDecisions } from '@/app/curator/actions'
+import { searchAction, yayNayAction, getDecisions, getKeywords } from '@/app/curator/actions'
 import type { YouTubeSearchResult } from '@/lib/youtube/types'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -33,6 +33,12 @@ export default function BrowseUI() {
   const [selectedVideo, setSelectedVideo] = useState<YouTubeSearchResult | null>(null)
   // savingId = `${ytId}-${status}` while an action is in flight
   const [savingId, setSavingId]     = useState<string | null>(null)
+  const [keywords, setKeywords]     = useState<string[]>([])
+
+  // Load blacklist once on mount
+  useEffect(() => {
+    getKeywords().then((kws) => setKeywords(kws.map((k) => k.keyword)))
+  }, [])
 
   async function runSearch(q: string) {
     const trimmed = q.trim()
@@ -97,6 +103,13 @@ export default function BrowseUI() {
 
   const showCategories = !activeQuery
   const showResults    = !!activeQuery && !searching
+
+  // Apply keyword blacklist filter
+  const lowerKws = keywords.map((k) => k.toLowerCase())
+  const visibleResults = results.filter(
+    (r) => !lowerKws.some((kw) => r.title.toLowerCase().includes(kw))
+  )
+  const hiddenCount = results.length - visibleResults.length
 
   return (
     <>
@@ -191,18 +204,32 @@ export default function BrowseUI() {
           )}
 
           {/* No results */}
-          {showResults && results.length === 0 && (
+          {showResults && visibleResults.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <p className="text-3xl mb-4">🔍</p>
               <p className="text-gray-700 font-medium">Ingen resultater for &lsquo;{activeQuery}&rsquo;</p>
-              <p className="text-sm text-gray-400 mt-1">Prøv et andet søgeord.</p>
+              {hiddenCount > 0 && (
+                <p className="text-sm text-amber-600 mt-2">
+                  {hiddenCount} {hiddenCount === 1 ? 'resultat' : 'resultater'} skjult af ordfilter
+                </p>
+              )}
+              {hiddenCount === 0 && (
+                <p className="text-sm text-gray-400 mt-1">Prøv et andet søgeord.</p>
+              )}
             </div>
           )}
 
+          {/* Blacklist notice */}
+          {showResults && hiddenCount > 0 && visibleResults.length > 0 && (
+            <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-1">
+              🚫 {hiddenCount} {hiddenCount === 1 ? 'resultat skjult' : 'resultater skjult'} pga. ordfilter
+            </p>
+          )}
+
           {/* Results grid */}
-          {showResults && results.length > 0 && (
+          {showResults && visibleResults.length > 0 && (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {results.map((result) => (
+              {visibleResults.map((result) => (
                 <ResultCard
                   key={result.id}
                   result={result}

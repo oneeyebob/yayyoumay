@@ -33,25 +33,48 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
     setActiveVideo({ id: target.ytVideoId, title: target.title })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Skip to next video when YouTube reports an error (e.g. video unavailable)
+  useEffect(() => {
+    if (!activeVideo) return
+    function handleMessage(e: MessageEvent) {
+      if (e.origin !== 'https://www.youtube.com') return
+      let data: { event?: string } | null = null
+      try { data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data } catch { return }
+      if (data?.event !== 'onError') return
+      const idx = videos.findIndex((v) => v.ytVideoId === activeVideo!.id)
+      const next = videos[idx + 1]
+      if (next) setActiveVideo({ id: next.ytVideoId, title: next.title })
+      else setActiveVideo(null)
+    }
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [activeVideo, videos])
+
   return (
     <main className="min-h-screen bg-gray-50">
 
       {/* Sticky unit: header + player collapse into one sticky block */}
-      <div className="sticky top-0 z-10 bg-white">
+      <div className="sticky top-0 z-10 bg-white" style={{ paddingBottom: 15 }}>
 
         {/* Header */}
         <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-          <form action={goHomeAction}>
-            <button
-              type="submit"
-              className="flex items-center transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
-              aria-label="Gå til profilvalg"
-            >
-              <img src="/yay-logo.svg" alt="YAY!" className="h-20 w-auto" />
-            </button>
-          </form>
+          <Link href="/" aria-label="Gå til feed">
+            <img
+              src="/yay-logo.svg"
+              alt="YAY!"
+              className="h-20 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
+            />
+          </Link>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500">{profileName}</span>
+            <form action={goHomeAction}>
+              <button
+                type="submit"
+                aria-label={`Skift profil (${profileName})`}
+                className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-semibold text-sm flex items-center justify-center hover:bg-indigo-200 active:bg-indigo-300 transition-colors"
+              >
+                {profileName.charAt(0).toUpperCase()}
+              </button>
+            </form>
             <Link
               href="/curator"
               className="text-xs text-gray-500 hover:text-gray-800 bg-white border border-gray-200 rounded-full px-3 py-1 transition-colors"
@@ -73,7 +96,7 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
             <div className="relative aspect-video w-full">
               <iframe
                 key={activeVideo.id}
-                src={`https://www.youtube.com/embed/${activeVideo.id}?autoplay=1&rel=0&disablekb=1&modestbranding=1`}
+                src={`https://www.youtube.com/embed/${activeVideo.id}?autoplay=1&rel=0&disablekb=1&modestbranding=1&enablejsapi=1`}
                 title={activeVideo.title}
                 allow="autoplay; encrypted-media; picture-in-picture; web-share"
                 allowFullScreen

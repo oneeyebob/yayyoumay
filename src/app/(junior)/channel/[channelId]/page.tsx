@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { isChannelWhitelisted } from '@/lib/whitelist'
 import { getChannelVideos } from '@/lib/youtube/client'
@@ -20,11 +21,25 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
 
   if (!user) redirect('/login')
 
-  // 2. Whitelist check
+  // 2. Resolve active profile name from cookie
+  const cookieStore = await cookies()
+  const activeProfileId = cookieStore.get('active_profile_id')?.value ?? null
+  let profileName = ''
+  if (activeProfileId) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', activeProfileId)
+      .eq('user_id', user.id)
+      .single()
+    profileName = profile?.name ?? ''
+  }
+
+  // 4. Whitelist check
   const allowed = await isChannelWhitelisted(ytChannelId, user.id)
   if (!allowed) redirect('/')
 
-  // 3. Load channel from DB
+  // 5. Load channel from DB
   const { data: channel } = await supabase
     .from('channels')
     .select('id, yt_channel_id, name, thumbnail_url')
@@ -85,6 +100,7 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
     <ChannelPageClient
       channel={{ name: channel.name, thumbnailUrl: channel.thumbnail_url }}
       videos={whitelistedVideos}
+      profileName={profileName}
     />
   )
 }

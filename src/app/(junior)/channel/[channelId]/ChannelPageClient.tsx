@@ -26,11 +26,12 @@ export interface ChannelVideo {
 interface Props {
   channel: ChannelInfo
   videos: ChannelVideo[]
+  profileName: string
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function ChannelPageClient({ channel, videos }: Props) {
+export default function ChannelPageClient({ channel, videos, profileName }: Props) {
   const [activeVideo, setActiveVideo] = useState<ActiveVideo | null>(null)
   const [query, setQuery] = useState('')
   const [activeSuggestion, setActiveSuggestion] = useState(-1)
@@ -121,16 +122,30 @@ export default function ChannelPageClient({ channel, videos }: Props) {
 
         {/* Header */}
         <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-          <form action={goHomeAction}>
-            <button
-              type="submit"
-              className="flex items-center transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
-              aria-label="Gå til profilvalg"
+          <Link href="/" aria-label="Gå til feed">
+            <img
+              src="/yay-logo.svg"
+              alt="YAY!"
+              className="h-20 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
+            />
+          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/curator"
+              className="text-xs text-gray-500 hover:text-gray-800 bg-white border border-gray-200 rounded-full px-3 py-1 transition-colors"
             >
-              <img src="/yay-logo.svg" alt="YAY!" className="h-20 w-auto" />
-            </button>
-          </form>
-          <span className="text-sm text-gray-500 truncate ml-3">{channel.name}</span>
+              🎛 Kuratormode
+            </Link>
+            <form action={goHomeAction}>
+              <button
+                type="submit"
+                aria-label={`Skift profil (${profileName})`}
+                className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-semibold text-sm flex items-center justify-center hover:bg-indigo-200 active:bg-indigo-300 transition-colors"
+              >
+                {profileName.charAt(0).toUpperCase()}
+              </button>
+            </form>
+          </div>
         </header>
 
         {/* Inline video player — shown when a video is selected */}

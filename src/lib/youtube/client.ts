@@ -189,6 +189,13 @@ interface RawVideoResponse {
     }
     contentDetails: {
       duration: string
+      regionRestriction?: {
+        allowed?: string[]
+        blocked?: string[]
+      }
+    }
+    status?: {
+      embeddable?: boolean
     }
   }>
 }
@@ -269,24 +276,34 @@ export async function getChannelVideos(
 
   // Step 3: fetch full video details in a single batch call
   const videosRaw = await ytFetch<RawVideoResponse>('videos', {
-    part: 'snippet,contentDetails',
+    part: 'snippet,contentDetails,status',
     id: videoIds.join(','),
   })
 
-  const videos: YouTubeVideo[] = (videosRaw.items ?? []).map((item) => {
-    const duration = item.contentDetails.duration
-    return {
-      id: item.id,
-      title: item.snippet.title,
-      description: item.snippet.description,
-      thumbnail: bestThumbnail(item.snippet.thumbnails),
-      channelId: item.snippet.channelId,
-      channelTitle: item.snippet.channelTitle,
-      duration,
-      durationSeconds: iso8601ToSeconds(duration),
-      publishedAt: item.snippet.publishedAt,
-    }
-  })
+  const videos: YouTubeVideo[] = (videosRaw.items ?? [])
+    .filter((item) => {
+      // Drop non-embeddable videos (causes YouTube error screen in iframe)
+      if (item.status?.embeddable === false) return false
+      // Drop videos blocked in Denmark, or only allowed in countries that exclude Denmark
+      const rr = item.contentDetails.regionRestriction
+      if (rr?.blocked?.includes('DK')) return false
+      if (rr?.allowed && !rr.allowed.includes('DK')) return false
+      return true
+    })
+    .map((item) => {
+      const duration = item.contentDetails.duration
+      return {
+        id: item.id,
+        title: item.snippet.title,
+        description: item.snippet.description,
+        thumbnail: bestThumbnail(item.snippet.thumbnails),
+        channelId: item.snippet.channelId,
+        channelTitle: item.snippet.channelTitle,
+        duration,
+        durationSeconds: iso8601ToSeconds(duration),
+        publishedAt: item.snippet.publishedAt,
+      }
+    })
 
   return {
     channelId,

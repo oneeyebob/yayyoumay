@@ -53,10 +53,10 @@ export default async function CuratorPage() {
             className="h-20 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
           />
         </Link>
-        <span className="text-lg font-bold text-gray-800">Indstillinger</span>
+        <span className="text-lg font-normal text-gray-800 mx-auto">Indstillinger</span>
       </header>
 
-      <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
 
         {/* Greeting */}
         <div>

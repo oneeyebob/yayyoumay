@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import CuratorGate from './CuratorGate'
 import SearchUI from './SearchUI'
+import SettingsUI, { type KeywordRow } from './settings/SettingsUI'
 
 export default async function CuratorPage() {
   const cookieStore = await cookies()
@@ -32,6 +33,13 @@ export default async function CuratorPage() {
       .single()
     profileName = activeProfile?.name ?? null
   }
+
+  // Load keyword blacklist
+  const { data: keywordRows } = await supabase
+    .from('keyword_blacklist')
+    .select('id, keyword')
+    .order('created_at', { ascending: true })
+  const keywords: KeywordRow[] = keywordRows ?? []
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -82,23 +90,11 @@ export default async function CuratorPage() {
           </svg>
         </Link>
 
-        {/* Settings shortcut */}
-        <Link
-          href="/curator/settings"
-          className="flex items-center gap-3 rounded-xl bg-white border border-gray-100 shadow-sm px-4 py-3.5 hover:border-gray-300 hover:shadow-md transition-all group"
-        >
-          <span className="text-2xl" aria-hidden>⚙️</span>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900">Indstillinger</p>
-            <p className="text-xs text-gray-400 truncate">Ordfilter, reklamer</p>
-          </div>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="ml-auto shrink-0 w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" aria-hidden>
-            <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-          </svg>
-        </Link>
-
         {/* Search + results */}
         <SearchUI />
+
+        {/* Settings: keyword blacklist + ads info */}
+        <SettingsUI initialKeywords={keywords} />
 
       </div>
     </main>

@@ -204,11 +204,11 @@ export default async function JuniorPage() {
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
         <form action={goHomeAction}>
-          <button type="submit" className="flex items-center" aria-label="Gå til profilvalg">
+          <button type="submit" className="flex items-center transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]" aria-label="Gå til profilvalg">
             <img
               src="/yay-logo.svg"
               alt="YAY!"
-              className="h-10 w-auto"
+              className="h-20 w-auto"
             />
           </button>
         </form>

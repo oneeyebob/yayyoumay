@@ -70,27 +70,9 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
                 allowFullScreen
                 className="absolute inset-0 w-full h-full"
               />
-              {/* Click-blocking overlay — covers the YouTube logo and "more videos"
-                  strip at the bottom of the iframe so children can't tap out */}
-              <div
-                className="absolute bottom-0 left-0 right-0 z-10"
-                style={{ height: 60, pointerEvents: 'auto' }}
-                aria-hidden
-              />
-              {/* Click-blocking overlay — covers the fullscreen button
-                  in the top-right corner of the iframe */}
-              <div
-                className="absolute top-0 right-0 z-10"
-                style={{ width: 50, height: 50, pointerEvents: 'auto' }}
-                aria-hidden
-              />
-              {/* Click-blocking overlay — covers the channel name and logo
-                  in the top bar of the iframe */}
-              <div
-                className="absolute top-0 left-0 right-0 z-10"
-                style={{ height: 50, pointerEvents: 'auto' }}
-                aria-hidden
-              />
+              <div className="absolute top-0 left-0 right-0 z-50 bg-red-500" style={{ height: 50 }} aria-hidden />
+              <div className="absolute bottom-0 left-0 right-0 z-50 bg-red-500" style={{ height: 60 }} aria-hidden />
+              <div className="absolute bottom-0 right-0 z-50 bg-red-500" style={{ width: 80, height: 80 }} aria-hidden />
             </div>
 
             {/* Close button */}

@@ -273,3 +273,74 @@ export async function yayNayAction(
 
   return { error: null }
 }
+
+// ── Browse: fetch existing decisions ─────────────────────────────────────────
+
+/**
+ * Given a list of YouTube IDs from search results, returns which ones the
+ * active profile has already decided on (yay/nay) in their list.
+ */
+export async function getDecisions(
+  items: Array<{ kind: 'video' | 'channel'; ytId: string }>
+): Promise<Record<string, 'yay' | 'nay'>> {
+  const supabase = await createClient()
+  const result: Record<string, 'yay' | 'nay'> = {}
+
+  const list = await getListForActiveProfile(supabase)
+  if (!list) return result
+
+  const videoYtIds = items.filter((i) => i.kind === 'video').map((i) => i.ytId)
+  const channelYtIds = items.filter((i) => i.kind === 'channel').map((i) => i.ytId)
+
+  // Videos
+  if (videoYtIds.length > 0) {
+    const { data: videos } = await supabase
+      .from('videos')
+      .select('id, yt_video_id')
+      .in('yt_video_id', videoYtIds)
+
+    if (videos?.length) {
+      const { data: listItems } = await supabase
+        .from('list_items')
+        .select('video_id, status')
+        .eq('list_id', list.id)
+        .in('video_id', videos.map((v) => v.id))
+        .is('channel_id', null)
+
+      const ytIdByInternalId = new Map(videos.map((v) => [v.id, v.yt_video_id]))
+      for (const li of listItems ?? []) {
+        if (li.video_id) {
+          const ytId = ytIdByInternalId.get(li.video_id)
+          if (ytId) result[ytId] = li.status as 'yay' | 'nay'
+        }
+      }
+    }
+  }
+
+  // Channels
+  if (channelYtIds.length > 0) {
+    const { data: channels } = await supabase
+      .from('channels')
+      .select('id, yt_channel_id')
+      .in('yt_channel_id', channelYtIds)
+
+    if (channels?.length) {
+      const { data: listItems } = await supabase
+        .from('list_items')
+        .select('channel_id, status')
+        .eq('list_id', list.id)
+        .in('channel_id', channels.map((c) => c.id))
+        .is('video_id', null)
+
+      const ytIdByInternalId = new Map(channels.map((c) => [c.id, c.yt_channel_id]))
+      for (const li of listItems ?? []) {
+        if (li.channel_id) {
+          const ytId = ytIdByInternalId.get(li.channel_id)
+          if (ytId) result[ytId] = li.status as 'yay' | 'nay'
+        }
+      }
+    }
+  }
+
+  return result
+}

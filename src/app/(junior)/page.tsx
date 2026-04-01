@@ -1,19 +1,11 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getChannelVideos } from '@/lib/youtube/client'
 import ProfilePicker from '@/components/shared/ProfilePicker'
 import StaleCookieClearer from './StaleCookieClearer'
-
-// ── Types ────────────────────────────────────────────────────────────────────
-
-interface FeedVideo {
-  ytVideoId: string
-  title: string
-  thumbnailUrl: string | null
-}
+import JuniorFeed, { type FeedVideo } from './JuniorFeed'
 
 // Raw Supabase row shapes (cast via as unknown as)
 interface RawYayItem {
@@ -198,68 +190,8 @@ export default async function JuniorPage() {
         </Link>
       </header>
 
-      {/* Feed */}
-      <div className="px-4 py-6">
-        {feedVideos.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <p className="text-4xl mb-4">🎬</p>
-            <p className="text-gray-700 font-medium mb-1">Ingen videoer endnu</p>
-            <p className="text-sm text-gray-400">
-              Bed din kurator om at godkende noget indhold.
-            </p>
-          </div>
-        ) : (
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {feedVideos.map((video) => (
-              <VideoCard key={video.ytVideoId} video={video} />
-            ))}
-          </ul>
-        )}
-      </div>
+      {/* Feed with client-side search */}
+      <JuniorFeed videos={feedVideos} />
     </main>
-  )
-}
-
-// ── Feed card ─────────────────────────────────────────────────────────────────
-
-function VideoCard({ video }: { video: FeedVideo }) {
-  return (
-    <li>
-      <Link
-        href={`/watch/${video.ytVideoId}`}
-        className="block rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow group"
-      >
-        {/* Thumbnail */}
-        <div className="relative aspect-video bg-gray-200">
-          {video.thumbnailUrl ? (
-            <Image
-              src={video.thumbnailUrl}
-              alt={video.title}
-              fill
-              sizes="(max-width: 640px) 50vw, 33vw"
-              className="object-cover"
-              unoptimized
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-2xl">▶</div>
-          )}
-          {/* Play overlay */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-            <div className="bg-white/90 rounded-full p-2">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-gray-900">
-                <path d="M6.3 2.84A1.5 1.5 0 0 0 4 4.11v11.78a1.5 1.5 0 0 0 2.3 1.27l9.344-5.891a1.5 1.5 0 0 0 0-2.538L6.3 2.841Z" />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Title */}
-        <div className="px-2.5 py-2">
-          <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-snug">
-            {video.title}
-          </p>
-        </div>
-      </Link>
-    </li>
   )
 }

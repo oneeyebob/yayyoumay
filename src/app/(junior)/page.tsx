@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { goHomeAction } from '../actions'
 import { getChannelVideos } from '@/lib/youtube/client'
 import ProfilePicker from '@/components/shared/ProfilePicker'
 import StaleCookieClearer from './StaleCookieClearer'
@@ -202,13 +203,24 @@ export default async function JuniorPage() {
     <main className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-        <span className="font-bold text-gray-900">{activeProfile.name}</span>
-        <Link
-          href="/curator"
-          className="text-xs text-gray-500 hover:text-gray-800 bg-white border border-gray-200 rounded-full px-3 py-1 transition-colors"
-        >
-          🎛 Kuratormode
-        </Link>
+        <form action={goHomeAction}>
+          <button type="submit" className="flex items-center" aria-label="Gå til profilvalg">
+            <img
+              src="/yay-logo.svg"
+              alt="YAY!"
+              className="h-10 w-auto"
+            />
+          </button>
+        </form>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">{activeProfile.name}</span>
+          <Link
+            href="/curator"
+            className="text-xs text-gray-500 hover:text-gray-800 bg-white border border-gray-200 rounded-full px-3 py-1 transition-colors"
+          >
+            🎛 Kuratormode
+          </Link>
+        </div>
       </header>
 
       {/* Feed with client-side search */}

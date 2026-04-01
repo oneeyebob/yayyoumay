@@ -1,7 +1,9 @@
 # YayYouMay — Arkitekturdokumentation
 
 > Et kuratorlag oven på YouTube — bygget af forældre, til forældre.
+> App navn: YAY!
 > Domæner: yayoumay.dk / yayoumay.com
+> GitHub: oneeyebob/yayyoumay
 
 ---
 
@@ -15,172 +17,178 @@ Produktet ejer ingen content. Alt video-indhold kommer fra YouTube via YouTube D
 
 ## To brugerniveauer
 
-### Juniormode
+### Juniormode (/)
 - Standardtilstand når appen åbnes
-- Barnet scroller frit og vælger selv
-- Ser **kun** kanaler og videoer der er whitelistet af kuratoren
-- Kan skifte frit mellem profiler (f.eks. Albert og Sofie) — ingen PIN krævet
-- Næste-video logik tjekker whitelist før den foreslår — ikke YouTubes algoritme
+- Viser profilpicker (Netflix-model) — ingen tekst, bare avatarer
+- Efter profilvalg: feed med Videoer og Kanaler tabs
+- Søgning inden for godkendt indhold (autocomplete)
+- Ser KUN whitelistet indhold
+- Kan skifte profil ved at klikke "YAY!" logo (går til profilpicker)
+- Næste-video logik tjekker whitelist
+- "Kuratormode" knap øverst til højre
 
-### Kuratormode
-- Aktiveres med en 4-cifret PIN (gælder per husstand, ikke per profil)
-- Forælder kan browse YouTube som normalt
-- Kan yay/nay kanaler, emner og videoer direkte fra browsing-sessionen
-- Administrerer profiler og lister
-- Alt ikke-whitelistet indhold kræver kuratorgennemgang
+### Kuratormode (/curator)
+- Aktiveres med 4-cifret PIN (gælder per husstand)
+- Viser "Hej [aktiv profil]" — kuraterer for den valgte profil
+- Søgning via YouTube API med yay/nay på resultater
+- Browse-mode: YouTube-lignende browsing med yay/nay overlay
+- Populære kategorier: LEGO, Minecraft, Madlavning, Natur, Musik, Sport, Tegnefilm, Videnskab
+- Navigation: Profiler, Indstillinger
 
 ---
 
 ## Auth-model
 
-Inspireret af ILS-projektet — ingen personoplysninger i systemet.
+Ingen personoplysninger i systemet.
 
-- Login: email (bruges kun som teknisk nøgle til Supabase Auth) + password
-- Brugernavn gemmes i `profiles` tabellen — ikke i auth-systemet
-- Recovery: brugeren modtager en "hotkey" på sin email ved oprettelse — en engangskode til at genetablere adgang hvis brugernavn/password glemmes
-- Email confirmation: **slået fra** i Supabase (giver øjeblikkelig session efter signup)
-- PIN: hashes med bcrypt (cost factor 10, random salt) og gemmes i `user_settings.curator_pin_hash`
-- Kuratormode-adgang markeres med en httpOnly cookie `curator_unlocked=true` (TTL: 1 time)
+- Login: brugernavn + password
+- Supabase auth email: {username}@yayyoumay.local (intern, aldrig vist)
+- Brugernavn gemmes i user_settings.username
+- Recovery: 32-tegns hotkey vises én gang ved oprettelse, gemmes som bcrypt hash
+- Email confirmation: SLÅET FRA i Supabase
+- PIN: bcrypt hash (cost 10, random salt) i user_settings.curator_pin_hash
+- Kuratormode: httpOnly cookie curator_unlocked=true (TTL 1 time)
+- Aktiv profil: cookie active_profile_id (session-cookie, ingen maxAge)
 
-### Netflix-model for profiler
-Én konto per husstand. Flere profiler under samme konto (Albert, Sofie, osv.). Hver profil har sin egen whitelist. Kuratormode gælder på tværs af alle profiler.
+### Onboarding flow
+/register → vis hotkey (gem din nøgle) → /curator/profiles → opret første profil → /curator/pin-setup → sæt PIN → /curator
+
+---
+
+## Netflix-model for profiler
+
+- Én konto per husstand
+- Flere profiler under samme konto (Albert, Lise osv.)
+- Én liste per profil (auto-oprettet ved profilskabelse)
+- Listen hedder det samme som profilen
+- Kuratormode viser aktiv profil — yay/nay går til den profils liste
+- Profilskift i juniormode: klik YAY! logo → profilpicker
+- Frit profilskift i juniormode (ingen PIN) — tillidsbaseret model
+
+---
+
+## Whitelist-logik
+
+Prioritetskæde (højest vinder):
+1. Eksplicit NAY på video → aldrig vist (trumfer alt)
+2. Eksplicit YAY på video → altid vist
+3. Kanal er YAY'd → alle kanalens videoer vises (via YouTube API, op til 20-30)
+4. Ingenting → ikke vist
+
+Kanal-whitelisting: når en kanal godkendes hentes de seneste videoer automatisk via getChannelVideos(). Nay'ede videoer filtreres fra.
 
 ---
 
 ## Databaseskema
 
-Database: Supabase (PostgreSQL), hosted i West Europe (London).
-RLS (Row Level Security) er aktiveret på alle tabeller.
+Database: Supabase (PostgreSQL), West Europe (London).
+RLS aktiveret på alle tabeller.
+Supabase projekt ref: ebwjikqypiuserpkuhoo
 
 ### Tabeller
+- profiles: person i husstanden, linked til auth.users
+- user_settings: 1:1 med auth.users. username, curator_pin_hash, hotkey_hash, youtube_premium (ubrugt)
+- lists: én per profil. lang_filter, age_filter
+- list_items: yay/nay på kanal ELLER video (CHECK constraint). status: 'yay'|'nay'
+- channels: YouTube kanal metadata
+- videos: YouTube video metadata, upserted ved afspilning
+- tags: 21 seed-tags (sprog, alderstrin, emne, tone)
+- list_item_tags: kobling list_items til tags
+- list_follows: community follow
+- community_votes: peer-validering
+- keyword_blacklist: husstandsniveau. UNIQUE(user_id, keyword)
 
-| Tabel | Beskrivelse |
-|---|---|
-| `profiles` | En person i husstanden. Linked til `auth.users`. |
-| `user_settings` | 1:1 med `auth.users`. Gemmer `curator_pin_hash`. |
-| `lists` | En whitelist tilknyttet en profil. Kan være public (community). |
-| `list_items` | Et godkendt/afvist indhold. Enten en kanal ELLER en video (ikke begge). Status: `yay` eller `nay`. |
-| `channels` | YouTube-kanal med metadata. Delt reference-data. |
-| `videos` | Enkelt YouTube-video med metadata. |
-| `tags` | Kuraterede tags med kategori og dansk/engelsk label. Seeded ved opstart. |
-| `list_item_tags` | Kobling mellem `list_items` og `tags`. |
-| `list_follows` | En bruger følger en andens liste. |
-| `community_votes` | Peer-validering af community-lister (approve/reject). |
-
-### Vigtige constraints
-- `list_items`: CHECK constraint sikrer at præcis én af `channel_id`/`video_id` er sat
-- `list_follows`: UNIQUE på `(follower_user_id, list_id)` — ingen duplikater
-- `community_votes`: UNIQUE på `(voter_user_id, list_id)` — én stemme per bruger per liste
-
-### RLS-politik (sammenfatning)
-- `profiles` / `user_settings`: kun ejer via `user_id = auth.uid()`
-- `lists`: ejer har fuld adgang; andre kan SELECT hvor `is_public = true`
-- `list_items` / `list_item_tags`: ejer-adgang via join-kæde `lists → profiles → user_id`
-- `channels` / `videos` / `tags`: alle autentificerede brugere kan SELECT
-- `list_follows` / `community_votes`: kun ejer på egne rækker
+### Migrations
+- 20260101000000: initial schema
+- 20260101000001: RLS på channels/videos INSERT
+- 20260101000002: username + hotkey_hash på user_settings
+- 20260101000003: age_filter på lists
+- youtube_premium kolonne på user_settings
+- keyword_blacklist tabel
 
 ---
 
-## Tags (seed-data)
+## Sider og routes
 
-21 tags på tværs af 4 kategorier:
+### Juniormode
+- /: profilpicker → feed (Videoer/Kanaler tabs + autocomplete søgning)
+- /watch/[videoId]: afspil video, whitelist-check, næste video
+- /channel/[channelId]: alle videoer fra whitelistet kanal via YouTube API
 
-| Kategori | Tags |
-|---|---|
-| `sprog` | dansk, engelsk, norsk, svensk |
-| `alderstrin` | 4-6 år, 7-9 år, 10-12 år |
-| `emne` | leg og kreativitet, gaming, sport, musik, madlavning, natur og dyr, videnskab, tegnefilm, humor, LEGO |
-| `tone` | rolig, energisk, lærerig, sjov |
+### Kuratormode
+- /curator: dashboard, søgning, browse-link, aktiv profil
+- /curator/browse: browse-mode med kategori-grid og yay/nay overlay
+- /curator/profiles: profilliste
+- /curator/profiles/[id]: profildetalje (navn, sprogfilter, aldersgruppe, godkendt indhold)
+- /curator/pin-setup: sæt PIN første gang
+- /curator/settings: ordfilter + annonceinfo
 
-Slugs er ASCII-safe (f.eks. `laererig`, `4-6-aar`). Display-labels ligger i `label_da` og `label_en`.
+### Auth
+- /login: brugernavn + password
+- /register: opret konto → vis hotkey
+
+---
+
+## Komponenter (shared)
+- PinModal: 4-cifret PIN, auto-submit, sætter curator_unlocked cookie
+- ProfilePicker: avatarcirkler uden tekst
+- YayNayButtons: ét klik gemmer til aktiv profils liste
+- VideoPreviewModal: preview i modal, autoplay, Escape-luk
+- JuniorFeed: Videoer/Kanaler tabs, autocomplete søgning, 4-kolonne grid
+- BrowseUI: kategori-grid, søgning, yay/nay badges
 
 ---
 
 ## Tech stack
-
-| Lag | Teknologi |
-|---|---|
-| Frontend + routing | Next.js (App Router, TypeScript) |
-| Styling | Tailwind CSS |
-| Hosting | Vercel |
-| Database + auth | Supabase (PostgreSQL + Supabase Auth) |
-| YouTube-data | YouTube Data API v3 |
-| AI-lag (V2+) | Anthropic API |
-| Versionsstyring | GitHub (`oneeyebob/yayyoumay`) |
+- Next.js App Router + TypeScript
+- Tailwind CSS
+- Vercel (hosting — ikke deployed endnu)
+- Supabase (PostgreSQL + Auth)
+- YouTube Data API v3 (Google Cloud projekt: YayYouMay)
+- Anthropic API (planlagt V2)
+- GitHub: oneeyebob/yayyoumay
 
 ---
 
-## Mappestruktur
-
-```
-src/
-  app/
-    (auth)/          — login, register
-    (junior)/        — juniormode (root URL = /)
-    curator/         — kuratormode (PIN-beskyttet)
-  components/
-    junior/          — UI til juniormode
-    curator/         — UI til kuratormode
-    shared/          — PinModal, ProfilePicker, YayNayButtons, VideoPlayer
-  lib/
-    youtube/         — gateway-lag (client.ts, types.ts)
-    supabase/        — browser + server klienter, genererede typer
-    auth.ts          — session-hjælpere
-    whitelist.ts     — tjek om kanal/video er godkendt
-supabase/
-  migrations/        — SQL-migrations
-  seed.sql           — tags og startdata
-```
+## Miljøvariabler (.env.local)
+NEXT_PUBLIC_SUPABASE_URL=https://ebwjikqypiuserpkuhoo.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+YOUTUBE_API_KEY=... (Google Cloud: YayYouMay projekt)
+CURATOR_PIN_SALT=... (reserveret, ubrugt)
 
 ---
 
-## Arkitekturprincipper
-
-### YouTube gateway-lag
-Al kommunikation med YouTube Data API går gennem `src/lib/youtube/client.ts`. Dette abstrakte lag sikrer at vi kan skifte kvota-model, tilføje caching eller udskifte datakilden uden at røre ved resten af applikationen. API-forbrug logges per bruger fra dag ét.
-
-### Whitelist-logik
-`src/lib/whitelist.ts` er den centrale funktion der svarer på "må denne bruger se dette indhold?". Al juniormode-rendering bruger denne funktion.
-
-### AI-laget
-Anthropic API er tænkt ind i arkitekturen fra dag ét men aktiveres i V2. Det er bevidst ikke koblet til endnu.
-
-### Annoncer
-YouTube Data API forbyder blokering af annoncer. Familier med YouTube Premium slipper for annoncer via deres eget abonnement — ikke via appen.
+## DEV nav bar
+Sort sticky navbar øverst. Links: YayYouMay (home+profilreset), Kuratormode, Profiler, Log ud.
+Markeret: // DEV NAV — remove before launch i src/app/layout.tsx
 
 ---
 
-## Forretningsmodel
+## Åbne punkter
 
-| Fase | Model |
-|---|---|
-| V1 | Gratis |
-| V1.5 | Buy Me a Coffee |
-| V2 | Abonnement (når API-kvota bliver flaskehals) |
-| V3+ | Direkte distribution for kuraterede skabere |
+### V1 mangler
+- Deploy til Vercel (yayoumay.dk)
+- Account recovery med hotkey (/recover)
+- UI/UX polish runde
+- Fjern DEV nav, erstat med rigtig navigation
+- Tilføj Profiler-knap tilbage på kurator-dashboard
+
+### V1.5
+- Community og follow-funktionen
+- Profil-billede/avatar upload
+
+### V2
+- AI-drevet indholdsvurdering (Anthropic API)
+- Abonnementsmodel
+
+### UX feedback der venter
+- Kortene i juniormode kan blive mere YouTube-agtige
+- Browse mode: diverse forbedringer
+- Kanal vs video skelnen kan forbedres visuelt
 
 ---
 
-## Åbne punkter / beslutninger der mangler
-
-- [ ] `user_settings`: tilføj `youtube_premium` boolean (påvirker UI omkring annoncer)
-- [ ] Hotkey/recovery-flow: ikke bygget endnu
-- [ ] Næste-video logik: implementeres i `VideoPlayer.tsx`
-- [ ] Community peer-validering: kræver 2-3 `approve` votes før liste frigives
-- [ ] Sprogfilter: YouTube API understøtter `relevanceLanguage` parameter — skal kobles til `lists.lang_filter`
-- [ ] AI-drevet indholdsvurdering: V2
-
----
-
-## Miljøvariabler
-
-Disse skal ligge i `.env.local` (aldrig i git):
-
-```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-YOUTUBE_API_KEY=
-CURATOR_PIN_SALT=        # reserveret til fremtidig brug
-```
-
-Supabase projekt ref: `ebwjikqypiuserpkuhoo`
+## Kendte quirks
+- /junior giver 404 — korrekt, brug / i stedet
+- youtube_premium kolonne eksisterer i DB men bruges ikke i UI
+- Wicked Makers (horror) er whitelistet i testdata — overvej at nay'e

@@ -45,6 +45,15 @@ export default function ChannelPageClient({ channel, videos }: Props) {
     setShuffledOrder([...videos].sort(() => Math.random() - 0.5))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Auto-play on mount: resume last played video if it's in this channel, else play first
+  useEffect(() => {
+    if (videos.length === 0) return
+    const lastId = localStorage.getItem('lastPlayedVideoId')
+    const match = lastId ? videos.find((v) => v.id === lastId) : null
+    const target = match ?? videos[0]
+    setActiveVideo({ id: target.id, title: target.title })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const trimmed = query.trim().toLowerCase()
 
   // ── Shuffle ────────────────────────────────────────────────────────────────
@@ -370,7 +379,10 @@ export default function ChannelPageClient({ channel, videos }: Props) {
             {visibleVideos.map((video) => (
               <li key={video.id}>
                 <button
-                  onClick={() => setActiveVideo({ id: video.id, title: video.title })}
+                  onClick={() => {
+                    localStorage.setItem('lastPlayedVideoId', video.id)
+                    setActiveVideo({ id: video.id, title: video.title })
+                  }}
                   className={[
                     'block w-full text-left rounded-xl overflow-hidden bg-white border shadow-sm hover:shadow-md transition-shadow group',
                     activeVideo?.id === video.id

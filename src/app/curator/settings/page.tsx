@@ -23,15 +23,6 @@ export default async function SettingsPage() {
 
   const keywords: KeywordRow[] = keywordRows ?? []
 
-  // Load youtube_premium from user_settings
-  const { data: userSettings } = await supabase
-    .from('user_settings')
-    .select('youtube_premium')
-    .eq('user_id', user.id)
-    .single()
-
-  const youtubePremium = userSettings?.youtube_premium ?? false
-
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="max-w-lg mx-auto px-4 py-8">
@@ -48,7 +39,7 @@ export default async function SettingsPage() {
 
         <h1 className="text-xl font-bold text-gray-900 mb-6">Indstillinger</h1>
 
-        <SettingsUI initialKeywords={keywords} youtubePremium={youtubePremium} />
+        <SettingsUI initialKeywords={keywords} />
       </div>
     </main>
   )

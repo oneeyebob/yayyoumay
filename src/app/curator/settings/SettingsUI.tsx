@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { addKeyword, removeKeyword, setYoutubePremium } from './actions'
+import { addKeyword, removeKeyword } from './actions'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -101,73 +101,25 @@ function KeywordBlacklistSection({ initialKeywords }: { initialKeywords: Keyword
   )
 }
 
-// ── YouTube Premium section ───────────────────────────────────────────────────
+// ── Ads info section ─────────────────────────────────────────────────────────
 
-function YoutubePremiumSection({ initialValue }: { initialValue: boolean }) {
-  const [enabled, setEnabled] = useState(initialValue)
-  const [saving, setSaving] = useState(false)
-  const [flash, setFlash] = useState(false)
-
-  async function handleToggle() {
-    const next = !enabled
-    setEnabled(next)
-    setSaving(true)
-    const { error } = await setYoutubePremium(next)
-    setSaving(false)
-    if (error) {
-      // revert on error
-      setEnabled(!next)
-    } else {
-      setFlash(true)
-      setTimeout(() => setFlash(false), 1500)
-    }
-  }
-
+function AdsInfoSection() {
   return (
-    <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-      <h2 className="font-bold text-gray-900 mb-4">YouTube Premium</h2>
-
-      <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-gray-900">Jeg har YouTube Premium</p>
-          <p className="text-xs text-gray-400 mt-0.5">
-            Slår annoncer fra via dit eget abonnement
-          </p>
-        </div>
-
-        {/* Toggle switch */}
-        <button
-          type="button"
-          role="switch"
-          aria-checked={enabled}
-          onClick={handleToggle}
-          disabled={saving}
-          className={[
-            'relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent',
-            'transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-            'disabled:opacity-50 disabled:cursor-not-allowed',
-            enabled ? 'bg-blue-600' : 'bg-gray-200',
-          ].join(' ')}
-        >
-          <span
-            className={[
-              'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0',
-              'transition-transform duration-200 ease-in-out',
-              enabled ? 'translate-x-5' : 'translate-x-0',
-            ].join(' ')}
-          />
-        </button>
-      </label>
-
-      {/* Saved flash */}
-      {flash && (
-        <p className="mt-2 text-xs text-green-600 flex items-center gap-1">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5" aria-hidden>
-            <path fillRule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" />
-          </svg>
-          Gemt
-        </p>
-      )}
+    <section className="bg-blue-50 rounded-xl border border-blue-100 p-5">
+      <h2 className="font-bold text-gray-900 mb-1">Reklamer i videofeed</h2>
+      <p className="text-sm text-gray-600 leading-relaxed mb-3">
+        YAY! kan ikke fjerne reklamer. Hvis du vil se videoer uden reklamer, kan du tegne et YouTube
+        Premium abonnement. Når du er logget ind på YouTube i denne browser med Premium, vises
+        videoer uden annoncer — også i YAY!
+      </p>
+      <a
+        href="https://www.youtube.com/premium"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+      >
+        Læs mere om YouTube Premium →
+      </a>
     </section>
   )
 }
@@ -176,15 +128,13 @@ function YoutubePremiumSection({ initialValue }: { initialValue: boolean }) {
 
 export default function SettingsUI({
   initialKeywords,
-  youtubePremium,
 }: {
   initialKeywords: KeywordRow[]
-  youtubePremium: boolean
 }) {
   return (
     <div className="space-y-5">
       <KeywordBlacklistSection initialKeywords={initialKeywords} />
-      <YoutubePremiumSection initialValue={youtubePremium} />
+      <AdsInfoSection />
     </div>
   )
 }

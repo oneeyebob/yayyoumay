@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getChannelVideos } from '@/lib/youtube/client'
 import ProfilePicker from '@/components/shared/ProfilePicker'
 import StaleCookieClearer from './StaleCookieClearer'
-import JuniorFeed, { type FeedVideo } from './JuniorFeed'
+import JuniorFeed, { type FeedVideo, type FeedChannel } from './JuniorFeed'
 
 // Raw Supabase row shapes (cast via as unknown as)
 interface RawYayItem {
@@ -23,6 +23,7 @@ interface RawYayItem {
     yt_video_id: string
     title: string
     thumbnail_url: string | null
+    channel: { name: string } | { name: string }[] | null
   } | null
 }
 
@@ -92,6 +93,7 @@ export default async function JuniorPage() {
   const listIds = lists?.map((l) => l.id) ?? []
 
   let feedVideos: FeedVideo[] = []
+  let feedChannels: FeedChannel[] = []
 
   if (listIds.length > 0) {
     // 6a. Load all yay'd list items (channels + videos)
@@ -102,7 +104,7 @@ export default async function JuniorPage() {
         channel_id,
         video_id,
         channel:channels(id, yt_channel_id, name, thumbnail_url),
-        video:videos(id, yt_video_id, title, thumbnail_url)
+        video:videos(id, yt_video_id, title, thumbnail_url, channel:channels(name))
       `)
       .in('list_id', listIds)
       .eq('status', 'yay')
@@ -133,11 +135,29 @@ export default async function JuniorPage() {
       .map((i) => i.video)
       .filter((v): v is NonNullable<RawYayItem['video']> => v !== null && !!v.yt_video_id)
       .filter((v) => !nayYtVideoIds.has(v.yt_video_id))
-      .map((v) => ({
-        ytVideoId: v.yt_video_id,
-        title: v.title,
-        thumbnailUrl: v.thumbnail_url,
-      }))
+      .map((v) => {
+        const rawCh = v.channel
+        const chName = Array.isArray(rawCh) ? rawCh[0]?.name : rawCh?.name
+        return {
+          ytVideoId: v.yt_video_id,
+          title: v.title,
+          thumbnailUrl: v.thumbnail_url,
+          channelName: chName ?? undefined,
+        }
+      })
+
+    // 6d-ii. Build channel cards for the Kanaler tab
+    feedChannels = yayChannelItems
+      .map((item) => {
+        const ch = Array.isArray(item.channel) ? item.channel[0] : item.channel
+        if (!ch?.yt_channel_id) return null
+        return {
+          ytChannelId: ch.yt_channel_id,
+          name: ch.name,
+          thumbnailUrl: ch.thumbnail_url,
+        }
+      })
+      .filter((c): c is FeedChannel => c !== null)
 
     // 6e. Fetch latest videos from each yay'd channel via YouTube API (in parallel).
     //     Nay'd videos are filtered out even if their channel is yay'd.
@@ -153,6 +173,7 @@ export default async function JuniorPage() {
               ytVideoId: v.id,
               title: v.title,
               thumbnailUrl: v.thumbnail.url,
+              channelName: ch.name,
             }))
         } catch {
           // Quota exhausted, network error, etc. — degrade gracefully
@@ -191,7 +212,7 @@ export default async function JuniorPage() {
       </header>
 
       {/* Feed with client-side search */}
-      <JuniorFeed videos={feedVideos} />
+      <JuniorFeed videos={feedVideos} channels={feedChannels} />
     </main>
   )
 }

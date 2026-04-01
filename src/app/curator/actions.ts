@@ -1,5 +1,6 @@
 'use server'
 
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { searchYouTube } from '@/lib/youtube/client'
 import type { YouTubeSearchResponse } from '@/lib/youtube/types'
@@ -54,7 +55,9 @@ export async function getLists(): Promise<ListOption[]> {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-async function getOrCreateDefaultList(
+// Returns the list for the active profile (from cookie), falling back to
+// the user's first profile if no cookie is set or the cookie is stale.
+async function getListForActiveProfile(
   supabase: Awaited<ReturnType<typeof createClient>>
 ): Promise<{ id: string } | null> {
   const {
@@ -62,22 +65,41 @@ async function getOrCreateDefaultList(
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  // First profile for this user (curator's own profile)
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .single()
+  // Prefer the profile the family has selected via the picker
+  const cookieStore = await cookies()
+  const activeProfileId = cookieStore.get('active_profile_id')?.value ?? null
 
-  if (!profile) return null
+  let profileId: string | null = null
 
-  // First list for that profile — create one if it doesn't exist
+  if (activeProfileId) {
+    // Validate the cookie profile actually belongs to this user
+    const { data: activeProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', activeProfileId)
+      .eq('user_id', user.id)
+      .single()
+    if (activeProfile) profileId = activeProfile.id
+  }
+
+  if (!profileId) {
+    // Fallback: first profile for this user
+    const { data: firstProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .single()
+    if (!firstProfile) return null
+    profileId = firstProfile.id
+  }
+
+  // Get or auto-create list for this profile
   const { data: existingList } = await supabase
     .from('lists')
     .select('id')
-    .eq('profile_id', profile.id)
+    .eq('profile_id', profileId)
     .order('created_at', { ascending: true })
     .limit(1)
     .single()
@@ -86,7 +108,7 @@ async function getOrCreateDefaultList(
 
   const { data: newList } = await supabase
     .from('lists')
-    .insert({ profile_id: profile.id, name: 'Min liste' })
+    .insert({ profile_id: profileId, name: 'Min liste' })
     .select('id')
     .single()
 
@@ -169,7 +191,7 @@ export async function yayNayAction(
   if (params.listId) {
     list = { id: params.listId }
   } else {
-    list = await getOrCreateDefaultList(supabase)
+    list = await getListForActiveProfile(supabase)
   }
 
   if (!list) return { error: 'Kunne ikke finde eller oprette en liste.' }

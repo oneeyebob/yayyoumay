@@ -45,7 +45,7 @@ export default async function CuratorPage() {
             className="h-20 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
           />
         </Link>
-        <span className="text-sm text-gray-400">Kuratormode</span>
+        <span className="text-lg font-bold text-gray-800">Indstillinger</span>
       </header>
 
       <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
@@ -53,15 +53,11 @@ export default async function CuratorPage() {
         {/* Greeting */}
         <div>
           {profileName ? (
-            <>
-              <h1 className="text-xl font-bold text-gray-900">Hej {profileName} 👋</h1>
-              <p className="text-xs text-gray-400 mt-0.5">Kuratormode</p>
-            </>
+            <h1 className="text-xl font-bold text-gray-900">Hej {profileName}</h1>
           ) : (
             <>
               <h1 className="text-xl font-bold text-gray-900">Hej 👋</h1>
               <p className="text-xs text-gray-400 mt-0.5">
-                Kuratormode ·{' '}
                 <Link href="/" className="underline hover:text-gray-600">
                   Vælg en profil
                 </Link>{' '}

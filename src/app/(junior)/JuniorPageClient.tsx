@@ -16,11 +16,12 @@ interface Props {
   videos: FeedVideo[]
   channels: FeedChannel[]
   profileName: string
+  initialTab?: 'videoer' | 'kanaler'
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function JuniorPageClient({ videos, channels, profileName }: Props) {
+export default function JuniorPageClient({ videos, channels, profileName, initialTab }: Props) {
   const [activeVideo, setActiveVideo] = useState<ActiveVideo | null>(null)
 
   return (
@@ -83,6 +84,13 @@ export default function JuniorPageClient({ videos, channels, profileName }: Prop
                 style={{ width: 50, height: 50, pointerEvents: 'auto' }}
                 aria-hidden
               />
+              {/* Click-blocking overlay — covers the channel name and logo
+                  in the top bar of the iframe */}
+              <div
+                className="absolute top-0 left-0 right-0 z-10"
+                style={{ height: 50, pointerEvents: 'auto' }}
+                aria-hidden
+              />
             </div>
 
             {/* Close button */}
@@ -112,6 +120,7 @@ export default function JuniorPageClient({ videos, channels, profileName }: Prop
         channels={channels}
         onVideoSelect={(v) => setActiveVideo(v)}
         activeVideoId={activeVideo?.id ?? null}
+        initialTab={initialTab}
       />
     </main>
   )

@@ -33,7 +33,14 @@ interface RawNayVideoItem {
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
-export default async function JuniorPage() {
+export default async function JuniorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>
+}) {
+  const { tab } = await searchParams
+  const initialTab: 'videoer' | 'kanaler' = tab === 'kanaler' ? 'kanaler' : 'videoer'
+
   const supabase = await createClient()
 
   // 1. Auth check
@@ -203,6 +210,7 @@ export default async function JuniorPage() {
       videos={feedVideos}
       channels={feedChannels}
       profileName={activeProfile.name}
+      initialTab={initialTab}
     />
   )
 }

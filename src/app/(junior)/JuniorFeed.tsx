@@ -25,18 +25,19 @@ interface JuniorFeedProps {
   channels: FeedChannel[]
   onVideoSelect?: (video: { id: string; title: string }) => void
   activeVideoId?: string | null
+  initialTab?: Tab
 }
 
 type Tab = 'videoer' | 'kanaler'
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function JuniorFeed({ videos, channels, onVideoSelect, activeVideoId }: JuniorFeedProps) {
+export default function JuniorFeed({ videos, channels, onVideoSelect, activeVideoId, initialTab }: JuniorFeedProps) {
   const router = useRouter()
   // Always provide a handler — fallback to router navigation so VideoCard
   // never silently falls through to the <Link> path
   const handleVideoSelect = onVideoSelect ?? ((v: { id: string }) => router.push(`/watch/${v.id}`))
-  const [tab, setTab] = useState<Tab>('videoer')
+  const [tab, setTab] = useState<Tab>(initialTab ?? 'videoer')
   const [query, setQuery] = useState('')
   const [activeSuggestion, setActiveSuggestion] = useState(-1)
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -311,7 +312,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
           ))}
         </ul>
       ) : (
-        <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-4xl mx-auto w-full">
           {visibleChannels.map((ch) => (
             <ChannelCard key={ch.ytChannelId} channel={ch} />
           ))}
@@ -409,30 +410,32 @@ function ChannelCard({ channel }: { channel: FeedChannel }) {
     <li>
       <Link
         href={`/channel/${channel.ytChannelId}`}
-        className="flex flex-col items-center gap-2 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-3 group"
+        className="block w-full text-left rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow group"
       >
-        {/* Circular avatar — max ~80px */}
-        <div className="relative w-14 h-14 rounded-full overflow-hidden bg-gray-200 shrink-0 ring-2 ring-gray-100 group-hover:ring-gray-200 transition-all">
+        {/* 16:9 thumbnail */}
+        <div className="relative aspect-video bg-gray-200">
           {channel.thumbnailUrl ? (
             <Image
               src={channel.thumbnailUrl}
               alt={channel.name}
               fill
-              sizes="56px"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="object-cover"
               unoptimized
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xl">
+            <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-2xl">
               📺
             </div>
           )}
         </div>
 
         {/* Name */}
-        <p className="text-xs font-semibold text-gray-900 text-center line-clamp-2 leading-snug">
-          {channel.name}
-        </p>
+        <div className="px-1.5 pt-1.5 pb-2">
+          <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-snug">
+            {channel.name}
+          </p>
+        </div>
       </Link>
     </li>
   )

@@ -305,6 +305,7 @@ export type Database = {
           id: string
           user_id: string
           username: string | null
+          youtube_premium: boolean
         }
         Insert: {
           created_at?: string
@@ -313,6 +314,7 @@ export type Database = {
           id?: string
           user_id: string
           username?: string | null
+          youtube_premium?: boolean
         }
         Update: {
           created_at?: string
@@ -321,6 +323,7 @@ export type Database = {
           id?: string
           user_id?: string
           username?: string | null
+          youtube_premium?: boolean
         }
         Relationships: []
       }

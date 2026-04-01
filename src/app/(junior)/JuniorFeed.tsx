@@ -245,13 +245,13 @@ export default function JuniorFeed({ videos, channels }: JuniorFeedProps) {
           <p className="text-sm text-gray-400 mt-1">Prøv et andet søgeord.</p>
         </div>
       ) : tab === 'videoer' ? (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {visibleVideos.map((video) => (
             <VideoCard key={video.ytVideoId} video={video} />
           ))}
         </ul>
       ) : (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {visibleChannels.map((ch) => (
             <ChannelCard key={ch.ytChannelId} channel={ch} />
           ))}
@@ -277,7 +277,7 @@ function VideoCard({ video }: { video: FeedVideo }) {
               src={video.thumbnailUrl}
               alt={video.title}
               fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="object-cover"
               unoptimized
             />
@@ -297,12 +297,12 @@ function VideoCard({ video }: { video: FeedVideo }) {
         </div>
 
         {/* Meta */}
-        <div className="px-2.5 pt-2 pb-2.5 space-y-0.5">
-          <p className="text-sm font-medium text-gray-900 line-clamp-2 leading-snug">
+        <div className="px-1.5 pt-1.5 pb-2 space-y-0.5">
+          <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-snug">
             {video.title}
           </p>
           {video.channelName && (
-            <p className="text-xs text-gray-400 truncate">{video.channelName}</p>
+            <p className="text-[11px] text-gray-400 truncate">{video.channelName}</p>
           )}
         </div>
       </Link>
@@ -317,28 +317,28 @@ function ChannelCard({ channel }: { channel: FeedChannel }) {
     <li>
       <Link
         href={`/channel/${channel.ytChannelId}`}
-        className="flex flex-col items-center gap-3 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5 group"
+        className="flex flex-col items-center gap-2 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-3 group"
       >
-        {/* Circular avatar */}
-        <div className="relative w-16 h-16 rounded-full overflow-hidden bg-gray-200 shrink-0 ring-2 ring-gray-100 group-hover:ring-gray-200 transition-all">
+        {/* Circular avatar — max ~80px */}
+        <div className="relative w-14 h-14 rounded-full overflow-hidden bg-gray-200 shrink-0 ring-2 ring-gray-100 group-hover:ring-gray-200 transition-all">
           {channel.thumbnailUrl ? (
             <Image
               src={channel.thumbnailUrl}
               alt={channel.name}
               fill
-              sizes="64px"
+              sizes="56px"
               className="object-cover"
               unoptimized
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-2xl">
+            <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xl">
               📺
             </div>
           )}
         </div>
 
         {/* Name */}
-        <p className="text-sm font-semibold text-gray-900 text-center line-clamp-2 leading-snug">
+        <p className="text-xs font-semibold text-gray-900 text-center line-clamp-2 leading-snug">
           {channel.name}
         </p>
       </Link>

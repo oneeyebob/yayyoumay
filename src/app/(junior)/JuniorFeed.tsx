@@ -33,16 +33,32 @@ export default function JuniorFeed({ videos, channels }: JuniorFeedProps) {
   const [query, setQuery] = useState('')
   const [activeSuggestion, setActiveSuggestion] = useState(-1)
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [shuffled, setShuffled] = useState(true)
+  const [shuffledOrder, setShuffledOrder] = useState<FeedVideo[]>(() =>
+    [...videos].sort(() => Math.random() - 0.5)
+  )
   const inputId = useId()
   const listboxId = useId()
 
   const trimmed = query.trim().toLowerCase()
 
+  // ── Shuffle ──────────────────────────────────────────────────────────────
+
+  function toggleShuffle() {
+    if (!shuffled) {
+      // Re-randomise when turning back on
+      setShuffledOrder([...videos].sort(() => Math.random() - 0.5))
+    }
+    setShuffled((s) => !s)
+  }
+
+  const orderedVideos = shuffled ? shuffledOrder : videos
+
   // ── Filtered lists ───────────────────────────────────────────────────────
 
   const visibleVideos = trimmed
-    ? videos.filter((v) => v.title.toLowerCase().includes(trimmed))
-    : videos
+    ? orderedVideos.filter((v) => v.title.toLowerCase().includes(trimmed))
+    : orderedVideos
 
   const visibleChannels = trimmed
     ? channels.filter((c) => c.name.toLowerCase().includes(trimmed))
@@ -103,41 +119,70 @@ export default function JuniorFeed({ videos, channels }: JuniorFeedProps) {
   return (
     <div className="px-4 py-4 space-y-4">
 
-      {/* ── Tabs ──────────────────────────────────────────────────────────── */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1" role="tablist" aria-label="Indholdstype">
-        {(['videoer', 'kanaler'] as Tab[]).map((t) => {
-          const count = t === 'videoer' ? videos.length : channels.length
-          return (
-            <button
-              key={t}
-              role="tab"
-              aria-selected={tab === t}
-              onClick={() => handleTabChange(t)}
-              className={[
-                'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
-                tab === t
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700',
-              ].join(' ')}
+      {/* ── Tabs + shuffle ────────────────────────────────────────────────── */}
+      <div className="flex items-center gap-2 max-w-xl mx-auto w-full">
+        <div className="flex-1 flex gap-1 bg-gray-100 rounded-xl p-1" role="tablist" aria-label="Indholdstype">
+          {(['videoer', 'kanaler'] as Tab[]).map((t) => {
+            const count = t === 'videoer' ? videos.length : channels.length
+            return (
+              <button
+                key={t}
+                role="tab"
+                aria-selected={tab === t}
+                onClick={() => handleTabChange(t)}
+                className={[
+                  'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                  tab === t
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700',
+                ].join(' ')}
+              >
+                {t === 'videoer' ? 'Videoer' : 'Kanaler'}
+                {count > 0 && (
+                  <span className="text-xs font-normal tabular-nums text-gray-400">
+                    {count}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Shuffle toggle — Videoer tab only */}
+        {tab === 'videoer' && (
+          <button
+            onClick={toggleShuffle}
+            aria-label={shuffled ? 'Slå bland fra' : 'Bland videoer'}
+            aria-pressed={shuffled}
+            className={[
+              'shrink-0 flex items-center justify-center rounded-xl w-9 h-9 transition-colors',
+              shuffled
+                ? 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600',
+            ].join(' ')}
+          >
+            {/* Shuffle icon — two crossing arrows */}
+            <svg
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-4 h-4"
+              aria-hidden
             >
-              {t === 'videoer' ? 'Videoer' : 'Kanaler'}
-              {count > 0 && (
-                <span
-                  className={[
-                    'text-xs font-normal tabular-nums',
-                    tab === t ? 'text-gray-400' : 'text-gray-400',
-                  ].join(' ')}
-                >
-                  {count}
-                </span>
-              )}
-            </button>
-          )
-        })}
+              <path d="M3 6.5h8.5q2 0 3.5 1.5M3 13.5h8.5q2 0 3.5-1.5" />
+              <path d="M13 4.5l2.5 2-2.5 2" />
+              <path d="M13 11.5l2.5 2-2.5 2" />
+              <line x1="3" y1="6.5" x2="8" y2="13.5" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* ── Search + autocomplete ──────────────────────────────────────────── */}
-      <div className="relative">
+      <div className="relative max-w-xl mx-auto w-full">
         {/* Search icon */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -245,7 +290,7 @@ export default function JuniorFeed({ videos, channels }: JuniorFeedProps) {
           <p className="text-sm text-gray-400 mt-1">Prøv et andet søgeord.</p>
         </div>
       ) : tab === 'videoer' ? (
-        <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-4xl mx-auto w-full">
           {visibleVideos.map((video) => (
             <VideoCard key={video.ytVideoId} video={video} />
           ))}

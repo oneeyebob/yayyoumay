@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { goHomeAction } from '../actions'
 import JuniorFeed, { type FeedVideo, type FeedChannel } from './JuniorFeed'
@@ -23,6 +23,15 @@ interface Props {
 
 export default function JuniorPageClient({ videos, channels, profileName, initialTab }: Props) {
   const [activeVideo, setActiveVideo] = useState<ActiveVideo | null>(null)
+
+  // Auto-play on mount: resume last played video if it's in the list, else play first
+  useEffect(() => {
+    if (videos.length === 0) return
+    const lastId = localStorage.getItem('lastPlayedVideoId')
+    const match = lastId ? videos.find((v) => v.ytVideoId === lastId) : null
+    const target = match ?? videos[0]
+    setActiveVideo({ id: target.ytVideoId, title: target.title })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -70,9 +79,9 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
                 allowFullScreen
                 className="absolute inset-0 w-full h-full"
               />
-              <div className="absolute top-0 left-0 right-0 z-50 bg-red-500" style={{ height: 50 }} aria-hidden />
-              <div className="absolute bottom-0 left-0 right-0 z-50 bg-red-500" style={{ height: 60 }} aria-hidden />
-              <div className="absolute bottom-0 right-0 z-50 bg-red-500" style={{ width: 80, height: 80 }} aria-hidden />
+              <div className="absolute top-0 left-0 right-0 z-50" style={{ height: 50 }} aria-hidden />
+              <div className="absolute bottom-0 left-0 right-0 z-50" style={{ height: 60 }} aria-hidden />
+              <div className="absolute bottom-20 right-4 z-50" style={{ width: 60, height: 50 }} aria-hidden />
             </div>
 
             {/* Close button */}

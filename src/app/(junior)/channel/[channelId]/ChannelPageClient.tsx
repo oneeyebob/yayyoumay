@@ -146,24 +146,9 @@ export default function ChannelPageClient({ channel, videos }: Props) {
                   allowFullScreen
                   className="absolute inset-0 w-full h-full"
                 />
-                {/* Click-blocking overlay — bottom bar (YouTube logo + more videos) */}
-                <div
-                  className="absolute bottom-0 left-0 right-0 z-10"
-                  style={{ height: 60, pointerEvents: 'auto' }}
-                  aria-hidden
-                />
-                {/* Click-blocking overlay — top-right (fullscreen button) */}
-                <div
-                  className="absolute top-0 right-0 z-10"
-                  style={{ width: 50, height: 50, pointerEvents: 'auto' }}
-                  aria-hidden
-                />
-                {/* Click-blocking overlay — top bar (channel name + logo) */}
-                <div
-                  className="absolute top-0 left-0 right-0 z-10"
-                  style={{ height: 50, pointerEvents: 'auto' }}
-                  aria-hidden
-                />
+                <div className="absolute top-0 left-0 right-0 z-50" style={{ height: 50 }} aria-hidden />
+                <div className="absolute bottom-0 left-0 right-0 z-50" style={{ height: 60 }} aria-hidden />
+                <div className="absolute bottom-20 right-4 z-50" style={{ width: 60, height: 50 }} aria-hidden />
               </div>
 
               {/* Close button */}

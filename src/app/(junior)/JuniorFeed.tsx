@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useId } from 'react'
+import { useState, useEffect, useId } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -22,21 +23,30 @@ export interface FeedChannel {
 interface JuniorFeedProps {
   videos: FeedVideo[]
   channels: FeedChannel[]
+  onVideoSelect?: (video: { id: string; title: string }) => void
+  activeVideoId?: string | null
 }
 
 type Tab = 'videoer' | 'kanaler'
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function JuniorFeed({ videos, channels }: JuniorFeedProps) {
+export default function JuniorFeed({ videos, channels, onVideoSelect, activeVideoId }: JuniorFeedProps) {
+  const router = useRouter()
+  // Always provide a handler — fallback to router navigation so VideoCard
+  // never silently falls through to the <Link> path
+  const handleVideoSelect = onVideoSelect ?? ((v: { id: string }) => router.push(`/watch/${v.id}`))
   const [tab, setTab] = useState<Tab>('videoer')
   const [query, setQuery] = useState('')
   const [activeSuggestion, setActiveSuggestion] = useState(-1)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [shuffled, setShuffled] = useState(true)
-  const [shuffledOrder, setShuffledOrder] = useState<FeedVideo[]>(() =>
-    [...videos].sort(() => Math.random() - 0.5)
-  )
+  // Initialize with original order — shuffle client-side only (after mount)
+  // to avoid SSR/client hydration mismatch from Math.random()
+  const [shuffledOrder, setShuffledOrder] = useState<FeedVideo[]>(videos)
+  useEffect(() => {
+    setShuffledOrder([...videos].sort(() => Math.random() - 0.5))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const inputId = useId()
   const listboxId = useId()
 
@@ -292,7 +302,12 @@ export default function JuniorFeed({ videos, channels }: JuniorFeedProps) {
       ) : tab === 'videoer' ? (
         <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-4xl mx-auto w-full">
           {visibleVideos.map((video) => (
-            <VideoCard key={video.ytVideoId} video={video} />
+            <VideoCard
+              key={video.ytVideoId}
+              video={video}
+              onSelect={handleVideoSelect}
+              isActive={activeVideoId === video.ytVideoId}
+            />
           ))}
         </ul>
       ) : (
@@ -308,48 +323,80 @@ export default function JuniorFeed({ videos, channels }: JuniorFeedProps) {
 
 // ── Video card ────────────────────────────────────────────────────────────────
 
-function VideoCard({ video }: { video: FeedVideo }) {
-  return (
-    <li>
-      <Link
-        href={`/watch/${video.ytVideoId}`}
-        className="block rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow group"
-      >
-        {/* 16:9 thumbnail */}
-        <div className="relative aspect-video bg-gray-200">
-          {video.thumbnailUrl ? (
-            <Image
-              src={video.thumbnailUrl}
-              alt={video.title}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover"
-              unoptimized
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-2xl">
-              ▶
-            </div>
-          )}
-          {/* Play overlay */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-            <div className="bg-white/90 rounded-full p-2">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-gray-900" aria-hidden>
-                <path d="M6.3 2.84A1.5 1.5 0 0 0 4 4.11v11.78a1.5 1.5 0 0 0 2.3 1.27l9.344-5.891a1.5 1.5 0 0 0 0-2.538L6.3 2.841Z" />
-              </svg>
-            </div>
+function VideoCard({
+  video,
+  onSelect,
+  isActive,
+}: {
+  video: FeedVideo
+  onSelect: (v: { id: string; title: string }) => void  // always required — caller provides fallback
+  isActive?: boolean
+}) {
+  const cardClass = [
+    'block w-full text-left rounded-xl overflow-hidden bg-white border shadow-sm hover:shadow-md transition-shadow group',
+    isActive ? 'border-blue-400 ring-2 ring-blue-300' : 'border-gray-100',
+  ].join(' ')
+
+  const inner = (
+    <>
+      {/* 16:9 thumbnail */}
+      <div className="relative aspect-video bg-gray-200">
+        {video.thumbnailUrl ? (
+          <Image
+            src={video.thumbnailUrl}
+            alt={video.title}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover"
+            unoptimized
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-2xl">
+            ▶
+          </div>
+        )}
+        {/* Play / now-playing overlay */}
+        <div className={[
+          'absolute inset-0 flex items-center justify-center transition-opacity bg-black/20',
+          isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+        ].join(' ')}>
+          <div className={[
+            'rounded-full p-2',
+            isActive ? 'bg-blue-500/90' : 'bg-white/90',
+          ].join(' ')}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-white" aria-hidden>
+              <path d="M6.3 2.84A1.5 1.5 0 0 0 4 4.11v11.78a1.5 1.5 0 0 0 2.3 1.27l9.344-5.891a1.5 1.5 0 0 0 0-2.538L6.3 2.841Z" />
+            </svg>
           </div>
         </div>
+      </div>
 
-        {/* Meta */}
-        <div className="px-1.5 pt-1.5 pb-2 space-y-0.5">
-          <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-snug">
-            {video.title}
-          </p>
-          {video.channelName && (
-            <p className="text-[11px] text-gray-400 truncate">{video.channelName}</p>
-          )}
-        </div>
+      {/* Meta */}
+      <div className="px-1.5 pt-1.5 pb-2 space-y-0.5">
+        <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-snug">
+          {video.title}
+        </p>
+        {video.channelName && (
+          <p className="text-[11px] text-gray-400 truncate">{video.channelName}</p>
+        )}
+      </div>
+    </>
+  )
+
+  if (onSelect) {
+    return (
+      <li>
+        <button onClick={() => onSelect({ id: video.ytVideoId, title: video.title })} className={cardClass}>
+          {inner}
+        </button>
+      </li>
+    )
+  }
+
+  return (
+    <li>
+      <Link href={`/watch/${video.ytVideoId}`} className={cardClass}>
+        {inner}
       </Link>
     </li>
   )

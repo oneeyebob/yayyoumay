@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { goHomeAction } from '../actions'
 import CuratorGate from './CuratorGate'
 import SearchUI from './SearchUI'
 
@@ -35,9 +36,24 @@ export default async function CuratorPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+
+      {/* Sticky header */}
+      <header className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+        <form action={goHomeAction}>
+          <button
+            type="submit"
+            className="flex items-center transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
+            aria-label="Gå til profilvalg"
+          >
+            <img src="/yay-logo.svg" alt="YAY!" className="h-20 w-auto" />
+          </button>
+        </form>
+        <span className="text-sm text-gray-400">Kuratormode</span>
+      </header>
+
       <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
 
-        {/* Header */}
+        {/* Greeting */}
         <div>
           {profileName ? (
             <>

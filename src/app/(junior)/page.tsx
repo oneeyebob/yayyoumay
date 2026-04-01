@@ -1,12 +1,11 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { goHomeAction } from '../actions'
 import { getChannelVideos } from '@/lib/youtube/client'
 import ProfilePicker from '@/components/shared/ProfilePicker'
 import StaleCookieClearer from './StaleCookieClearer'
-import JuniorFeed, { type FeedVideo, type FeedChannel } from './JuniorFeed'
+import { type FeedVideo, type FeedChannel } from './JuniorFeed'
+import JuniorPageClient from './JuniorPageClient'
 
 // Raw Supabase row shapes (cast via as unknown as)
 interface RawYayItem {
@@ -197,34 +196,13 @@ export default async function JuniorPage() {
     }
   }
 
-  // ── Render feed ────────────────────────────────────────────────────────────
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-        <form action={goHomeAction}>
-          <button type="submit" className="flex items-center transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]" aria-label="Gå til profilvalg">
-            <img
-              src="/yay-logo.svg"
-              alt="YAY!"
-              className="h-20 w-auto"
-            />
-          </button>
-        </form>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-500">{activeProfile.name}</span>
-          <Link
-            href="/curator"
-            className="text-xs text-gray-500 hover:text-gray-800 bg-white border border-gray-200 rounded-full px-3 py-1 transition-colors"
-          >
-            🎛 Kuratormode
-          </Link>
-        </div>
-      </header>
-
-      {/* Feed with client-side search */}
-      <JuniorFeed videos={feedVideos} channels={feedChannels} />
-    </main>
+    <JuniorPageClient
+      videos={feedVideos}
+      channels={feedChannels}
+      profileName={activeProfile.name}
+    />
   )
 }

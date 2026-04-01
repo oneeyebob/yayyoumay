@@ -130,11 +130,12 @@ export default function ChannelPageClient({ channel, videos, profileName }: Prop
             />
           </Link>
           <div className="flex items-center gap-3">
-            <Link
-              href="/curator"
-              className="text-xs text-gray-500 hover:text-gray-800 bg-white border border-gray-200 rounded-full px-3 py-1 transition-colors"
-            >
-              🎛 Kuratormode
+            <Link href="/curator" aria-label="Kuratormode">
+              <img
+                src="/settings-icon.svg"
+                alt="Kuratormode"
+                className="h-24 w-24 mt-1 transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
+              />
             </Link>
             <form action={goHomeAction}>
               <button

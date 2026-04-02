@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
-import { searchYouTube } from '@/lib/youtube/client'
+import { searchYouTube, getVideo, getChannel } from '@/lib/youtube/client'
 import type { YouTubeSearchResponse } from '@/lib/youtube/types'
 
 // ── Search ────────────────────────────────────────────────────────────────────
@@ -385,4 +385,43 @@ export async function updateListFilters(
     .eq('id', listId)
 
   return error ? { error: error.message } : {}
+}
+
+// ── Browse: yay from embed ─────────────────────────────────────────────────────
+
+export async function yayVideoFromEmbed(
+  videoId: string
+): Promise<{ error?: string }> {
+  try {
+    const video = await getVideo(videoId)
+    return yayNayAction({
+      type: 'video',
+      ytId: video.id,
+      ytTitle: video.title,
+      ytThumbnail: video.thumbnail.url,
+      channelId: video.channelId,
+      channelTitle: video.channelTitle,
+      status: 'yay',
+    })
+  } catch {
+    return { error: 'Kunne ikke hente videoinfo.' }
+  }
+}
+
+export async function yayChannelFromEmbed(
+  videoId: string
+): Promise<{ error?: string }> {
+  try {
+    const video = await getVideo(videoId)
+    const channel = await getChannel(video.channelId)
+    return yayNayAction({
+      type: 'channel',
+      ytId: channel.id,
+      ytTitle: channel.title,
+      ytThumbnail: channel.thumbnail.url,
+      status: 'yay',
+    })
+  } catch {
+    return { error: 'Kunne ikke hente kanalinfo.' }
+  }
 }

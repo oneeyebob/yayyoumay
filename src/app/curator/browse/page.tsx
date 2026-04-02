@@ -1,13 +1,29 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import BrowseUI from './BrowseUI'
 
 export default async function BrowsePage() {
   const cookieStore = await cookies()
   const unlocked = cookieStore.get('curator_unlocked')?.value === 'true'
 
-  // Require the curator PIN gate before browsing
   if (!unlocked) redirect('/curator')
 
-  return <BrowseUI />
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let profileName: string | null = null
+
+  const activeProfileId = cookieStore.get('active_profile_id')?.value ?? null
+  if (user && activeProfileId) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', activeProfileId)
+      .eq('user_id', user.id)
+      .single()
+    profileName = data?.name ?? null
+  }
+
+  return <BrowseUI profileName={profileName} />
 }

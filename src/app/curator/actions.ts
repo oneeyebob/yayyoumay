@@ -365,3 +365,24 @@ export async function getDecisions(
 
   return result
 }
+
+// ── List filters ──────────────────────────────────────────────────────────────
+
+export async function updateListFilters(
+  listId: string,
+  langFilter: string | null,
+  ageFilter: string | null
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke logget ind.' }
+
+  const { error } = await supabase
+    .from('lists')
+    .update({ lang_filter: langFilter, age_filter: ageFilter })
+    .eq('id', listId)
+
+  return error ? { error: error.message } : {}
+}

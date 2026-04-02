@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
+import Link from 'next/link'
 import Image from 'next/image'
 import { searchAction, getKeywords } from './actions'
 import YayNayButtons from '@/components/shared/YayNayButtons'
@@ -76,6 +77,16 @@ export default function SearchUI() {
               'Søg'
             )}
           </button>
+          <Link
+            href="/curator/browse"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 whitespace-nowrap"
+          >
+            <svg viewBox="0 0 24 17" width="20" height="14" aria-hidden>
+              <rect width="24" height="17" rx="4" fill="#FF0000" />
+              <polygon points="9.5,4.5 9.5,12.5 17,8.5" fill="white" />
+            </svg>
+            Browse
+          </Link>
         </form>
 
         {/* Skeleton */}

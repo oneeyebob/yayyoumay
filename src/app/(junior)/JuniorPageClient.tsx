@@ -71,16 +71,16 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
                 <button
                   type="submit"
                   aria-label={`Skift profil (${profileName})`}
-                  className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-semibold text-sm flex items-center justify-center hover:bg-indigo-200 active:bg-indigo-300 transition-colors"
+                  className="w-10 h-10 rounded-full bg-transparent border-2 border-black text-black font-semibold text-2xl flex items-center justify-center hover:bg-indigo-200 active:bg-indigo-300 transition-colors font-[family-name:var(--font-permanent-marker)]"
                 >
                   {profileName.charAt(0).toUpperCase()}
                 </button>
               </form>
-              <Link href="/curator" aria-label="Kuratormode">
+              <Link href="/curator" aria-label="Kuratormode" className="w-10 h-10 rounded-full border-2 border-black flex items-center justify-center">
                 <img
                   src="/settings-icon.svg"
                   alt="Kuratormode"
-                  className="h-6 w-6 mt-1 transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
+                  className="h-5 w-5 transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
                 />
               </Link>
             </div>

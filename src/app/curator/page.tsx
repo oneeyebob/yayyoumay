@@ -69,9 +69,9 @@ export default async function CuratorPage() {
       <header className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 relative">
         <Link href="/" aria-label="Gå til feed">
           <img
-            src="/yay-logo.svg"
+            src="/yay-logo-compact.svg"
             alt="YAY!"
-            className="h-20 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
+            className="h-10 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
           />
         </Link>
         <span className="text-sm font-normal text-gray-800 absolute left-1/2 -translate-x-1/2">Indstillinger</span>

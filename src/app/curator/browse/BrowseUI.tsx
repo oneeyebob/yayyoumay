@@ -112,21 +112,11 @@ export default function BrowseUI({ profileName, initialVideos, langFilter }: Pro
 
         {/* Header */}
         <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-          <Link
-            href="/curator"
-            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5" aria-hidden>
-              <path fillRule="evenodd" d="M9.78 4.22a.75.75 0 0 1 0 1.06L7.06 8l2.72 2.72a.75.75 0 1 1-1.06 1.06L5.47 8.53a.75.75 0 0 1 0-1.06l3.25-3.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
-            </svg>
-            Tilbage
-          </Link>
-
-          <Link href="/curator" aria-label="Indstillinger">
+          <Link href="/" aria-label="Gå til feed">
             <img
-              src="/yay-logo.svg"
+              src="/yay-logo-compact.svg"
               alt="YAY!"
-              className="h-20 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)]"
+              className="h-10 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)]"
             />
           </Link>
 
@@ -184,7 +174,7 @@ export default function BrowseUI({ profileName, initialVideos, langFilter }: Pro
                     <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : (
                     <div className="flex flex-col items-center gap-0">
-                      <img src="/yay-logo.svg" className="h-8 w-auto brightness-0 invert" alt="" aria-hidden />
+                      <img src="/yay-logo-compact.svg" className="h-8 w-auto" alt="" aria-hidden />
                       Video
                     </div>
                   )}
@@ -199,7 +189,7 @@ export default function BrowseUI({ profileName, initialVideos, langFilter }: Pro
                     <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : (
                     <div className="flex flex-col items-center gap-0">
-                      <img src="/yay-logo.svg" className="h-8 w-auto brightness-0 invert" alt="" aria-hidden />
+                      <img src="/yay-logo-compact.svg" className="h-8 w-auto" alt="" aria-hidden />
                       Kanal
                     </div>
                   )}

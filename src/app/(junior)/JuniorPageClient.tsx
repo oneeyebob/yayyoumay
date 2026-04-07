@@ -57,12 +57,12 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
       <div className="sticky top-0 z-10 bg-white" style={{ paddingBottom: 15 }}>
 
         {/* Header */}
-        <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+        <header className="bg-white border-b border-gray-100 px-4 py-2 flex items-center justify-between">
           <Link href="/" aria-label="Gå til feed">
             <img
-              src="/yay-logo.svg"
+              src="/yay-logo-compact.svg"
               alt="YAY!"
-              className="h-20 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
+              className="h-10 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
             />
           </Link>
           <div className="flex items-center gap-3">

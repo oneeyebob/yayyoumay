@@ -1,37 +1,90 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { searchAction, yayVideoFromEmbed, yayChannelFromEmbed } from '@/app/curator/actions'
+import { searchAction, yayVideoFromEmbed, yayChannelFromEmbed, getPopularVideosAction } from '@/app/curator/actions'
 import type { YouTubeSearchResult } from '@/lib/youtube/types'
+
+// Unified internal video shape used by the grid and player
+interface BrowseVideo {
+  id: string
+  title: string
+  thumbnailUrl: string
+  channelTitle: string
+}
+
+function fromSearchResult(r: YouTubeSearchResult): BrowseVideo {
+  return { id: r.id, title: r.title, thumbnailUrl: r.thumbnail.url, channelTitle: r.channelTitle }
+}
 
 interface Props {
   profileName: string | null
+  initialVideos: YouTubeSearchResult[]
+  langFilter: string | null
 }
 
-export default function BrowseUI({ profileName }: Props) {
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+export default function BrowseUI({ profileName, initialVideos, langFilter }: Props) {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<YouTubeSearchResult[]>([])
-  const [searched, setSearched] = useState(false)
+  const [searchedQuery, setSearchedQuery] = useState<string | null>(null)
+  const [searchResults, setSearchResults] = useState<BrowseVideo[]>([])
   const [isSearching, startSearch] = useTransition()
-  const [activeVideo, setActiveVideo] = useState<YouTubeSearchResult | null>(null)
+  // Initialize with first 24 unshuffled to avoid SSR/client hydration mismatch.
+  // Shuffle client-side only after mount.
+  const [popularVideos, setPopularVideos] = useState<BrowseVideo[]>(
+    initialVideos.slice(0, 24).map(fromSearchResult)
+  )
+  useEffect(() => {
+    console.log('[BrowseUI] initialVideos count:', initialVideos.length, initialVideos.slice(0, 2))
+    setPopularVideos(shuffle(initialVideos.map(fromSearchResult)).slice(0, 24))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const [isShaking, startShake] = useTransition()
+  const [activeVideo, setActiveVideo] = useState<BrowseVideo | null>(null)
   const [saving, setSaving] = useState<'video' | 'channel' | null>(null)
   const [feedback, setFeedback] = useState<{ type: 'video' | 'channel'; ok: boolean } | null>(null)
+
+  const isShowingSearch = searchedQuery !== null
+  const visibleVideos = isShowingSearch ? searchResults : popularVideos
+
+  function handleShake() {
+    startShake(async () => {
+      const fresh = await getPopularVideosAction(langFilter)
+      setPopularVideos(shuffle(fresh.map(fromSearchResult)).slice(0, 24))
+      setSearchedQuery(null)
+      setSearchResults([])
+      setQuery('')
+    })
+  }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     const q = query.trim()
     if (!q) return
     startSearch(async () => {
-      const res = await searchAction(q)
-      setResults(res.results.filter((r) => r.kind === 'video'))
-      setSearched(true)
+      const firstLang = langFilter?.split(',')[0]?.trim() || undefined
+      const res = await searchAction(q, firstLang ? { language: firstLang } : undefined)
+      setSearchResults(res.results.filter((r) => r.kind === 'video').map(fromSearchResult))
+      setSearchedQuery(q)
     })
   }
 
-  function handleSelect(result: YouTubeSearchResult) {
-    setActiveVideo(result)
+  function clearSearch() {
+    setQuery('')
+    setSearchedQuery(null)
+    setSearchResults([])
+  }
+
+  function handleSelect(video: BrowseVideo) {
+    setActiveVideo(video)
     setFeedback(null)
   }
 
@@ -102,13 +155,11 @@ export default function BrowseUI({ profileName }: Props) {
                   allowFullScreen
                   className="absolute inset-0 w-full h-full"
                 />
-                {/* Click-blocking overlays to prevent accidental YouTube navigation */}
                 <div className="absolute top-0 left-0 right-0 z-50" style={{ height: 50 }} aria-hidden />
                 <div className="absolute bottom-0 left-0 right-0 z-50" style={{ height: 60 }} aria-hidden />
                 <div className="absolute bottom-20 right-4 z-50" style={{ width: 60, height: 50 }} aria-hidden />
               </div>
 
-              {/* Close button */}
               <button
                 onClick={() => setActiveVideo(null)}
                 aria-label="Luk video"
@@ -127,23 +178,27 @@ export default function BrowseUI({ profileName }: Props) {
                   type="button"
                   onClick={handleYayVideo}
                   disabled={saving !== null}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-green-500 hover:bg-green-400 active:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2.5 text-sm font-bold text-white transition-colors shadow-sm"
+                  className="flex-1 flex items-center justify-center gap-1 rounded-xl bg-green-500 hover:bg-green-400 active:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed px-4 h-14 text-sm font-bold text-white transition-colors shadow-sm"
                 >
                   {saving === 'video' ? (
                     <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  ) : '👍'}
-                  YAY! Video
+                  ) : (
+                    <img src="/yay-logo.svg" className="h-20 w-auto brightness-0 invert leading-none" alt="" aria-hidden />
+                  )}
+                  Video
                 </button>
                 <button
                   type="button"
                   onClick={handleYayChannel}
                   disabled={saving !== null}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-green-600 hover:bg-green-500 active:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2.5 text-sm font-bold text-white transition-colors shadow-sm"
+                  className="flex-1 flex items-center justify-center gap-1 rounded-xl bg-green-600 hover:bg-green-500 active:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed px-4 h-14 text-sm font-bold text-white transition-colors shadow-sm"
                 >
                   {saving === 'channel' ? (
                     <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  ) : '📺'}
-                  YAY! Kanal
+                  ) : (
+                    <img src="/yay-logo.svg" className="h-20 w-auto brightness-0 invert leading-none" alt="" aria-hidden />
+                  )}
+                  Kanal
                 </button>
               </div>
 
@@ -191,7 +246,39 @@ export default function BrowseUI({ profileName }: Props) {
               <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden />
             ) : 'Søg'}
           </button>
+          {isShowingSearch ? (
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="shrink-0 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              Ryd
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleShake}
+              disabled={isShaking}
+              title="Ryst posen"
+              className="shrink-0 rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-lg disabled:opacity-40 hover:bg-gray-50 transition-colors"
+            >
+              {isShaking ? (
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+              ) : '🎲'}
+            </button>
+          )}
         </form>
+
+        {/* Section heading */}
+        {!isSearching && (
+          <div className="max-w-4xl mx-auto w-full">
+            <h2 className="text-sm font-semibold text-gray-700">
+              {isShowingSearch
+                ? `Søgeresultater for "${searchedQuery}"`
+                : 'Populære videoer'}
+            </h2>
+          </div>
+        )}
 
         {/* Loading skeleton */}
         {isSearching && (
@@ -208,32 +295,23 @@ export default function BrowseUI({ profileName }: Props) {
           </ul>
         )}
 
-        {/* Empty initial state */}
-        {!searched && !isSearching && (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <p className="text-4xl mb-4">🔍</p>
-            <p className="text-gray-700 font-medium">Søg på YouTube</p>
-            <p className="text-sm text-gray-400 mt-1">Find videoer og godkend dem til {profileName ?? 'profilen'}</p>
-          </div>
-        )}
-
-        {/* No results */}
-        {searched && !isSearching && results.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
+        {/* No search results */}
+        {isShowingSearch && !isSearching && searchResults.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
             <p className="text-3xl mb-4">😕</p>
-            <p className="text-gray-700 font-medium">Ingen resultater for &ldquo;{query}&rdquo;</p>
+            <p className="text-gray-700 font-medium">Ingen resultater for &ldquo;{searchedQuery}&rdquo;</p>
             <p className="text-sm text-gray-400 mt-1">Prøv et andet søgeord.</p>
           </div>
         )}
 
-        {/* Results grid */}
-        {!isSearching && results.length > 0 && (
+        {/* Video grid */}
+        {!isSearching && visibleVideos.length > 0 && (
           <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-4xl mx-auto w-full">
-            {results.map((result) => (
+            {visibleVideos.map((video) => (
               <ResultCard
-                key={result.id}
-                result={result}
-                isActive={activeVideo?.id === result.id}
+                key={video.id}
+                video={video}
+                isActive={activeVideo?.id === video.id}
                 onSelect={handleSelect}
               />
             ))}
@@ -247,55 +325,48 @@ export default function BrowseUI({ profileName }: Props) {
 // ── ResultCard ────────────────────────────────────────────────────────────────
 
 function ResultCard({
-  result,
+  video,
   isActive,
   onSelect,
 }: {
-  result: YouTubeSearchResult
+  video: BrowseVideo
   isActive: boolean
-  onSelect: (r: YouTubeSearchResult) => void
+  onSelect: (v: BrowseVideo) => void
 }) {
   return (
     <li>
       <button
         type="button"
-        onClick={() => onSelect(result)}
+        onClick={() => onSelect(video)}
         className={[
           'block w-full text-left rounded-xl overflow-hidden bg-white border shadow-sm hover:shadow-md transition-shadow group',
           isActive ? 'border-blue-400 ring-2 ring-blue-300' : 'border-gray-100',
         ].join(' ')}
       >
-        {/* Thumbnail */}
         <div className="relative aspect-video bg-gray-200">
           <Image
-            src={result.thumbnail.url}
-            alt={result.title}
+            src={video.thumbnailUrl}
+            alt={video.title}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover"
             unoptimized
           />
-          {/* Play / active overlay */}
           <div className={[
             'absolute inset-0 flex items-center justify-center transition-opacity bg-black/20',
             isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
           ].join(' ')}>
-            <div className={[
-              'rounded-full p-2',
-              isActive ? 'bg-blue-500/90' : 'bg-white/90',
-            ].join(' ')}>
+            <div className={['rounded-full p-2', isActive ? 'bg-blue-500/90' : 'bg-white/90'].join(' ')}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-white" aria-hidden>
                 <path d="M6.3 2.84A1.5 1.5 0 0 0 4 4.11v11.78a1.5 1.5 0 0 0 2.3 1.27l9.344-5.891a1.5 1.5 0 0 0 0-2.538L6.3 2.841Z" />
               </svg>
             </div>
           </div>
         </div>
-
-        {/* Meta */}
-        <div className="px-1.5 pt-1.5 pb-2 space-y-0.5">
-          <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-snug">{result.title}</p>
-          {result.channelTitle && (
-            <p className="text-[11px] text-gray-400 truncate">{result.channelTitle}</p>
+        <div className="px-1.5 pt-1.5 pb-2 h-14 flex flex-col justify-start overflow-hidden">
+          <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-snug">{video.title}</p>
+          {video.channelTitle && (
+            <p className="text-[11px] text-gray-400 line-clamp-1 mt-0.5">{video.channelTitle}</p>
           )}
         </div>
       </button>

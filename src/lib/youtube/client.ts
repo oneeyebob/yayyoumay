@@ -186,6 +186,8 @@ interface RawVideoResponse {
       channelId: string
       channelTitle: string
       publishedAt: string
+      defaultLanguage?: string
+      defaultAudioLanguage?: string
     }
     contentDetails: {
       duration: string
@@ -222,6 +224,62 @@ export async function getVideo(videoId: string): Promise<YouTubeVideo> {
     durationSeconds: iso8601ToSeconds(duration),
     publishedAt: item.snippet.publishedAt,
   }
+}
+
+// ── getPopularVideosForLanguages ──────────────────────────────────────────────
+
+const NORDIC_SEED_QUERIES = [
+  'dansk youtube',
+  'danske børn',
+  'nordic kids',
+  'lego dansk',
+  'minecraft dansk',
+]
+
+export async function getPopularVideosForLanguages(
+  _langCodes: string[],
+  maxTotal = 24
+): Promise<YouTubeSearchResult[]> {
+  const perQuery = Math.ceil(maxTotal / NORDIC_SEED_QUERIES.length)
+
+  const batches = await Promise.all(
+    NORDIC_SEED_QUERIES.map((q) =>
+      ytFetch<RawSearchResponse>('search', {
+        part: 'snippet',
+        q,
+        type: 'video',
+        order: 'viewCount',
+        maxResults: String(Math.min(perQuery + 2, 10)),
+        relevanceLanguage: 'da',
+      }).then((raw) =>
+        (raw.items ?? [])
+          .filter((item) => item.id.kind === 'youtube#video' && item.id.videoId)
+          .map((item) => ({
+            kind: 'video' as const,
+            id: item.id.videoId!,
+            title: item.snippet.title,
+            description: item.snippet.description,
+            thumbnail: bestThumbnail(item.snippet.thumbnails),
+            channelId: item.snippet.channelId,
+            channelTitle: item.snippet.channelTitle,
+            publishedAt: item.snippet.publishedAt ?? null,
+          }))
+      )
+    )
+  )
+
+  const seen = new Set<string>()
+  const merged: YouTubeSearchResult[] = []
+  for (const batch of batches) {
+    for (const video of batch) {
+      if (!seen.has(video.id)) {
+        seen.add(video.id)
+        merged.push(video)
+      }
+    }
+  }
+
+  return merged.slice(0, maxTotal)
 }
 
 // ── getChannelVideos ──────────────────────────────────────────────────────────

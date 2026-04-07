@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
-import { searchYouTube, getVideo, getChannel } from '@/lib/youtube/client'
+import { searchYouTube, getVideo, getChannel, getPopularVideosForLanguages } from '@/lib/youtube/client'
 import type { YouTubeSearchResponse } from '@/lib/youtube/types'
 
 // ── Search ────────────────────────────────────────────────────────────────────
@@ -423,5 +423,18 @@ export async function yayChannelFromEmbed(
     })
   } catch {
     return { error: 'Kunne ikke hente kanalinfo.' }
+  }
+}
+
+export async function getPopularVideosAction(
+  langFilter: string | null
+): Promise<import('@/lib/youtube/types').YouTubeSearchResult[]> {
+  const langs = langFilter
+    ? langFilter.split(',').map((l) => l.trim()).filter(Boolean)
+    : []
+  try {
+    return await getPopularVideosForLanguages(langs, 24)
+  } catch {
+    return []
   }
 }

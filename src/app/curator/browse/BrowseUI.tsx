@@ -111,25 +111,27 @@ export default function BrowseUI({ profileName, initialVideos, langFilter }: Pro
       <div className="sticky top-0 z-10 bg-white" style={{ paddingBottom: activeVideo ? 12 : 0 }}>
 
         {/* Header */}
-        <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-          <Link href="/" aria-label="Gå til feed">
-            <img
-              src="/yay-logo-compact.svg"
-              alt="YAY!"
-              className="h-10 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)]"
-            />
-          </Link>
+        <header className="bg-white border-b border-gray-100 px-4 py-3">
+          <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
+            <Link href="/" aria-label="Gå til feed">
+              <img
+                src="/yay-logo-compact.svg"
+                alt="YAY!"
+                className="h-10 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)]"
+              />
+            </Link>
 
-          {profileName ? (
-            <div
-              className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-semibold text-sm flex items-center justify-center"
-              aria-label={profileName}
-            >
-              {profileName.charAt(0).toUpperCase()}
-            </div>
-          ) : (
-            <div className="w-8" />
-          )}
+            {profileName ? (
+              <div
+                className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-semibold text-sm flex items-center justify-center"
+                aria-label={profileName}
+              >
+                {profileName.charAt(0).toUpperCase()}
+              </div>
+            ) : (
+              <div className="w-8" />
+            )}
+          </div>
         </header>
 
         {/* Inline player */}

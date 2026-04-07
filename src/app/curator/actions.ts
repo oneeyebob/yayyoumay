@@ -370,8 +370,38 @@ export async function getDecisions(
 
 export async function removeListItem(id: string): Promise<{ error: string | null }> {
   const supabase = await createClient()
+
+  // Fetch the item first to get list_id and channel_id
+  const { data: item, error: fetchError } = await supabase
+    .from('list_items')
+    .select('list_id, channel_id')
+    .eq('id', id)
+    .single()
+
+  if (fetchError || !item) return { error: fetchError?.message ?? 'Item ikke fundet.' }
+
+  // Delete the item itself
   const { error } = await supabase.from('list_items').delete().eq('id', id)
-  return { error: error?.message ?? null }
+  if (error) return { error: error.message }
+
+  // If it was a channel item, also remove all video items from the same channel in this list
+  if (item.channel_id) {
+    const { data: videos } = await supabase
+      .from('videos')
+      .select('id')
+      .eq('channel_id', item.channel_id)
+
+    if (videos && videos.length > 0) {
+      const videoIds = videos.map((v) => v.id)
+      await supabase
+        .from('list_items')
+        .delete()
+        .eq('list_id', item.list_id)
+        .in('video_id', videoIds)
+    }
+  }
+
+  return { error: null }
 }
 
 // ── List filters ──────────────────────────────────────────────────────────────

@@ -178,27 +178,31 @@ export default function BrowseUI({ profileName, initialVideos, langFilter }: Pro
                   type="button"
                   onClick={handleYayVideo}
                   disabled={saving !== null}
-                  className="flex-1 flex items-center justify-center gap-1 rounded-xl bg-green-500 hover:bg-green-400 active:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed px-4 h-14 text-sm font-bold text-white transition-colors shadow-sm"
+                  className="flex-1 flex items-center justify-center rounded-xl bg-green-500 hover:bg-green-400 active:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-3 text-sm font-bold text-white transition-colors shadow-sm"
                 >
                   {saving === 'video' ? (
                     <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : (
-                    <img src="/yay-logo.svg" className="h-20 w-auto brightness-0 invert leading-none" alt="" aria-hidden />
+                    <div className="flex flex-col items-center gap-0">
+                      <img src="/yay-logo.svg" className="h-8 w-auto brightness-0 invert" alt="" aria-hidden />
+                      Video
+                    </div>
                   )}
-                  Video
                 </button>
                 <button
                   type="button"
                   onClick={handleYayChannel}
                   disabled={saving !== null}
-                  className="flex-1 flex items-center justify-center gap-1 rounded-xl bg-green-600 hover:bg-green-500 active:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed px-4 h-14 text-sm font-bold text-white transition-colors shadow-sm"
+                  className="flex-1 flex items-center justify-center rounded-xl bg-green-600 hover:bg-green-500 active:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-3 text-sm font-bold text-white transition-colors shadow-sm"
                 >
                   {saving === 'channel' ? (
                     <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : (
-                    <img src="/yay-logo.svg" className="h-20 w-auto brightness-0 invert leading-none" alt="" aria-hidden />
+                    <div className="flex flex-col items-center gap-0">
+                      <img src="/yay-logo.svg" className="h-8 w-auto brightness-0 invert" alt="" aria-hidden />
+                      Kanal
+                    </div>
                   )}
-                  Kanal
                 </button>
               </div>
 

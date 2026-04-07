@@ -1,3 +1,4 @@
 {
-  "autoCheckout": false
+  "autoCheckout": false,
+  "workingDirectory": "/Users/jakobedelfeldt/yayyoumay"
 }

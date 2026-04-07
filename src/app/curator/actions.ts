@@ -366,6 +366,14 @@ export async function getDecisions(
   return result
 }
 
+// ── Remove list item ─────────────────────────────────────────────────────────
+
+export async function removeListItem(id: string): Promise<{ error: string | null }> {
+  const supabase = await createClient()
+  const { error } = await supabase.from('list_items').delete().eq('id', id)
+  return { error: error?.message ?? null }
+}
+
 // ── List filters ──────────────────────────────────────────────────────────────
 
 export async function updateListFilters(

@@ -5,6 +5,7 @@ import CuratorGate from './CuratorGate'
 import SearchUI from './SearchUI'
 import FiltersUI from './FiltersUI'
 import SettingsUI, { type KeywordRow } from './settings/SettingsUI'
+import YayListUI, { type YayChannel, type YayVideo } from './YayListUI'
 
 export default async function CuratorPage() {
   const cookieStore = await cookies()
@@ -62,6 +63,24 @@ export default async function CuratorPage() {
     .order('created_at', { ascending: true })
   const keywords: KeywordRow[] = keywordRows ?? []
 
+  // Yay'd channels
+  const { data: yayChannels } = listId ? await supabase
+    .from('list_items')
+    .select('id, channels(id, name, thumbnail_url)')
+    .eq('list_id', listId)
+    .eq('status', 'yay')
+    .not('channel_id', 'is', null)
+    .order('created_at', { ascending: false }) : { data: [] }
+
+  // Yay'd videos
+  const { data: yayVideos } = listId ? await supabase
+    .from('list_items')
+    .select('id, videos(id, title, thumbnail_url)')
+    .eq('list_id', listId)
+    .eq('status', 'yay')
+    .not('video_id', 'is', null)
+    .order('created_at', { ascending: false }) : { data: [] }
+
   return (
     <main className="min-h-screen bg-gray-50">
 
@@ -75,7 +94,6 @@ export default async function CuratorPage() {
               className="h-10 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
             />
           </Link>
-          <span className="text-sm font-normal text-gray-800 absolute left-1/2 -translate-x-1/2">Indstillinger</span>
         </div>
       </header>
 
@@ -114,6 +132,12 @@ export default async function CuratorPage() {
 
         {/* Settings: keyword blacklist + ads info */}
         <SettingsUI initialKeywords={keywords} />
+
+        {/* Yay'd content list */}
+        <YayListUI
+          yayChannels={(yayChannels ?? []) as YayChannel[]}
+          yayVideos={(yayVideos ?? []) as YayVideo[]}
+        />
 
       </div>
     </main>

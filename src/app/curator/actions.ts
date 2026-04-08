@@ -429,7 +429,7 @@ export async function updateListFilters(
 
 export async function yayVideoFromEmbed(
   videoId: string
-): Promise<{ error?: string }> {
+): Promise<{ error: string | null }> {
   try {
     const video = await getVideo(videoId)
     return yayNayAction({
@@ -448,7 +448,7 @@ export async function yayVideoFromEmbed(
 
 export async function yayChannelFromEmbed(
   videoId: string
-): Promise<{ error?: string }> {
+): Promise<{ error: string | null }> {
   try {
     const video = await getVideo(videoId)
     const channel = await getChannel(video.channelId)

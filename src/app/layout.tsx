@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Playpen_Sans } from "next/font/google";
+import { Geist, Geist_Mono, Playpen_Sans, Outfit } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,6 +18,11 @@ const playpenSans = Playpen_Sans({
   variable: "--font-permanent-marker",
 });
 
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+});
+
 export const metadata: Metadata = {
   title: "YAY!",
   description: "Et kuratorlag oven på YouTube — bygget af forældre, til forældre.",
@@ -31,7 +36,7 @@ export default function RootLayout({
   return (
     <html
       lang="da"
-      className={`${geistSans.variable} ${geistMono.variable} ${playpenSans.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${playpenSans.variable} ${outfit.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}

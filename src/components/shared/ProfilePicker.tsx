@@ -99,7 +99,7 @@ export default function ProfilePicker({ profiles }: ProfilePickerProps) {
                 {/* Avatar circle */}
                 <div
                   className="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-bold shadow-md transition-transform group-hover:scale-105 group-focus-visible:ring-4 group-focus-visible:ring-offset-2 group-focus-visible:ring-blue-400"
-                  style={{ backgroundColor: bg, color: fg, fontFamily: 'var(--font-permanent-marker)' }}
+                  style={{ backgroundColor: bg, color: fg, fontFamily: 'var(--font-outfit)' }}
                 >
                   {isLoading ? (
                     <span
@@ -114,7 +114,7 @@ export default function ProfilePicker({ profiles }: ProfilePickerProps) {
                 {/* Name */}
                 <span
                   className="text-sm font-semibold text-gray-800 text-center leading-tight"
-                  style={{ fontFamily: 'var(--font-permanent-marker)' }}
+                  style={{ fontFamily: 'var(--font-outfit)' }}
                 >
                   {profile.name}
                 </span>
@@ -133,7 +133,7 @@ export default function ProfilePicker({ profiles }: ProfilePickerProps) {
             </div>
             <span
               className="text-sm font-semibold text-gray-400 text-center leading-tight"
-              style={{ fontFamily: 'var(--font-permanent-marker)' }}
+              style={{ fontFamily: 'var(--font-outfit)' }}
             >
               Ny profil
             </span>
@@ -169,7 +169,7 @@ export default function ProfilePicker({ profiles }: ProfilePickerProps) {
             <div className="flex justify-center">
               <div
                 className="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-bold shadow-md"
-                style={{ backgroundColor: previewBg, color: previewFg, fontFamily: 'var(--font-permanent-marker)' }}
+                style={{ backgroundColor: previewBg, color: previewFg, fontFamily: 'var(--font-outfit)' }}
               >
                 {previewInitials}
               </div>

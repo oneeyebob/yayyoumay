@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import { searchAction, yayVideoFromEmbed, yayChannelFromEmbed, getPopularVideosAction } from '@/app/curator/actions'
+import SharedHeader from '@/components/shared/SharedHeader'
 import type { YouTubeSearchResult } from '@/lib/youtube/types'
 
 // Unified internal video shape used by the grid and player
@@ -111,28 +111,11 @@ export default function BrowseUI({ profileName, initialVideos, langFilter }: Pro
       <div className="sticky top-0 z-10 bg-white" style={{ paddingBottom: activeVideo ? 12 : 0 }}>
 
         {/* Header */}
-        <header className="bg-white border-b border-gray-100 px-4 py-3">
-          <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
-            <Link href="/" aria-label="Gå til feed">
-              <img
-                src="/yay-logo-compact.svg"
-                alt="YAY!"
-                className="h-10 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)]"
-              />
-            </Link>
-
-            {profileName ? (
-              <div
-                className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-semibold text-sm flex items-center justify-center"
-                aria-label={profileName}
-              >
-                {profileName.charAt(0).toUpperCase()}
-              </div>
-            ) : (
-              <div className="w-8" />
-            )}
-          </div>
-        </header>
+        <SharedHeader
+          showAvatar={!!profileName}
+          profileInitial={profileName?.charAt(0).toUpperCase()}
+          sticky={false}
+        />
 
         {/* Inline player */}
         {activeVideo && (
@@ -255,12 +238,11 @@ export default function BrowseUI({ profileName, initialVideos, langFilter }: Pro
               type="button"
               onClick={handleShake}
               disabled={isShaking}
-              title="Ryst posen"
-              className="shrink-0 rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-lg disabled:opacity-40 hover:bg-gray-50 transition-colors"
+              className="shrink-0 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {isShaking ? (
                 <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
-              ) : '🎲'}
+              ) : 'Ryst posen'}
             </button>
           )}
         </form>

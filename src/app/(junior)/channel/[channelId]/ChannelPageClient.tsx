@@ -3,7 +3,7 @@
 import { useState, useEffect, useId } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { goHomeAction } from '@/app/actions'
+import SharedHeader from '@/components/shared/SharedHeader'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -121,35 +121,12 @@ export default function ChannelPageClient({ channel, videos, profileName }: Prop
       <div className="sticky top-0 z-10 bg-white">
 
         {/* Header */}
-        <header className="bg-white border-b border-gray-100 px-4 py-3">
-          <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
-            <Link href="/" aria-label="Gå til feed">
-              <img
-                src="/yay-logo-compact.svg"
-                alt="YAY!"
-                className="h-10 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
-              />
-            </Link>
-            <div className="flex items-center gap-3">
-              <Link href="/curator" aria-label="Kuratormode">
-                <img
-                  src="/settings-icon.svg"
-                  alt="Kuratormode"
-                  className="h-6 w-6 mt-1 transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
-                />
-              </Link>
-              <form action={goHomeAction}>
-                <button
-                  type="submit"
-                  aria-label={`Skift profil (${profileName})`}
-                  className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-semibold text-sm flex items-center justify-center hover:bg-indigo-200 active:bg-indigo-300 transition-colors"
-                >
-                  {profileName.charAt(0).toUpperCase()}
-                </button>
-              </form>
-            </div>
-          </div>
-        </header>
+        <SharedHeader
+          showAvatar
+          showSettingsIcon
+          profileInitial={profileName.charAt(0).toUpperCase()}
+          sticky={false}
+        />
 
         {/* Inline video player — shown when a video is selected */}
         {activeVideo && (
@@ -224,6 +201,7 @@ export default function ChannelPageClient({ channel, videos, profileName }: Prop
               role="tab"
               aria-selected={true}
               className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium bg-white text-gray-900 shadow-sm"
+              style={{ fontFamily: 'var(--font-outfit)' }}
             >
               Videoer
               {videos.length > 0 && (
@@ -238,6 +216,7 @@ export default function ChannelPageClient({ channel, videos, profileName }: Prop
               role="tab"
               aria-selected={false}
               className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+              style={{ fontFamily: 'var(--font-outfit)' }}
             >
               Kanaler
             </Link>
@@ -248,28 +227,10 @@ export default function ChannelPageClient({ channel, videos, profileName }: Prop
             onClick={toggleShuffle}
             aria-label={shuffled ? 'Slå bland fra' : 'Bland videoer'}
             aria-pressed={shuffled}
-            className={[
-              'shrink-0 flex items-center justify-center rounded-xl w-9 h-9 transition-colors',
-              shuffled
-                ? 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-                : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600',
-            ].join(' ')}
+            className="shrink-0 px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+            style={{ fontFamily: 'var(--font-outfit)' }}
           >
-            <svg
-              viewBox="0 0 20 20"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-4 h-4"
-              aria-hidden
-            >
-              <path d="M3 6.5h8.5q2 0 3.5 1.5M3 13.5h8.5q2 0 3.5-1.5" />
-              <path d="M13 4.5l2.5 2-2.5 2" />
-              <path d="M13 11.5l2.5 2-2.5 2" />
-              <line x1="3" y1="6.5" x2="8" y2="13.5" />
-            </svg>
+            Ryst posen
           </button>
         </div>
 

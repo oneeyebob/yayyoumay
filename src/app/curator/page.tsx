@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import SharedHeader from '@/components/shared/SharedHeader'
 import CuratorGate from './CuratorGate'
 import SearchUI from './SearchUI'
 import FiltersUI from './FiltersUI'
@@ -85,17 +86,10 @@ export default async function CuratorPage() {
     <main className="min-h-screen bg-gray-50">
 
       {/* Sticky header */}
-      <header className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3">
-        <div className="max-w-4xl mx-auto w-full flex items-center justify-between relative">
-          <Link href="/" aria-label="Gå til feed">
-            <img
-              src="/yay-logo-compact.svg"
-              alt="YAY!"
-              className="h-10 w-auto transition-[filter] duration-200 hover:[filter:brightness(0)_saturate(100%)_invert(16%)_sepia(100%)_saturate(7481%)_hue-rotate(1deg)_brightness(103%)_contrast(104%)] active:[filter:brightness(0)_saturate(100%)_invert(10%)_sepia(100%)_saturate(9999%)_hue-rotate(1deg)_brightness(90%)]"
-            />
-          </Link>
-        </div>
-      </header>
+      <SharedHeader
+        showAvatar={!!profileName}
+        profileInitial={profileName?.charAt(0).toUpperCase()}
+      />
 
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
 

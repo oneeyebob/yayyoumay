@@ -77,7 +77,7 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
             <div className="relative aspect-video w-full">
               <iframe
                 key={activeVideo.id}
-                src={`https://www.youtube.com/embed/${activeVideo.id}?autoplay=1&rel=0&disablekb=1&modestbranding=1&enablejsapi=1&origin=https://yayyoumay.dk`}
+                src={`https://www.youtube-nocookie.com/embed/${activeVideo.id}?autoplay=1&rel=0&disablekb=1&modestbranding=1&enablejsapi=1&origin=https://yayyoumay.dk`}
                 title={activeVideo.title}
                 allow="autoplay; encrypted-media; picture-in-picture; web-share"
                 allowFullScreen

@@ -93,7 +93,7 @@ export default function BrowseUI({ profileName, langFilter }: Props) {
               <div className="relative aspect-video w-full">
                 <iframe
                   key={activeVideo.id}
-                  src={`https://www.youtube.com/embed/${activeVideo.id}?autoplay=1&rel=0&disablekb=1&modestbranding=1&enablejsapi=1`}
+                  src={`https://www.youtube-nocookie.com/embed/${activeVideo.id}?autoplay=1&rel=0&disablekb=1&modestbranding=1&enablejsapi=1`}
                   title={activeVideo.title}
                   allow="autoplay; encrypted-media; picture-in-picture; web-share"
                   allowFullScreen

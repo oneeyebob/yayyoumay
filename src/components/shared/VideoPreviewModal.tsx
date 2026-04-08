@@ -72,7 +72,7 @@ export default function VideoPreviewModal({
         <div className="relative w-full bg-black sm:rounded-b-xl overflow-hidden" style={{ minHeight: '500px' }}>
           <iframe
             key={videoId}
-            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
+            src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
             title={title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen

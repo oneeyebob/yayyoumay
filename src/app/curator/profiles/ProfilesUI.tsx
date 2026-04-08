@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createProfile, updateProfile, deleteProfile } from './actions'
+import { selectProfile } from '@/app/(junior)/actions'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -288,6 +289,11 @@ export default function ProfilesUI({ profiles }: { profiles: ProfileRow[] }) {
     setGlobalError(null)
   }
 
+  async function handleSelect(id: string) {
+    await selectProfile(id)
+    router.push('/curator')
+  }
+
   async function handleDelete(id: string) {
     setDeleteLoading(true)
     const { error } = await deleteProfile(id)
@@ -342,16 +348,21 @@ export default function ProfilesUI({ profiles }: { profiles: ProfileRow[] }) {
           {profiles.map((profile) => (
             <li key={profile.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
               <div className="flex items-center gap-3">
-                <Avatar name={profile.name} color={profile.avatar_color} size="sm" />
-
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 truncate">{profile.name}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {profile.listCount === 0
-                      ? 'Ingen lister'
-                      : `${profile.listCount} liste${profile.listCount === 1 ? '' : 'r'}`}
-                  </p>
-                </div>
+                <button
+                  onClick={() => handleSelect(profile.id)}
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-75 transition-opacity"
+                  aria-label={`Vælg profil ${profile.name}`}
+                >
+                  <Avatar name={profile.name} color={profile.avatar_color} size="sm" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 truncate">{profile.name}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {profile.listCount === 0
+                        ? 'Ingen lister'
+                        : `${profile.listCount} liste${profile.listCount === 1 ? '' : 'r'}`}
+                    </p>
+                  </div>
+                </button>
 
                 <div className="flex gap-1.5 shrink-0">
                   <Link

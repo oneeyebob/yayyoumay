@@ -7,6 +7,7 @@ interface Props {
   showSettingsIcon?: boolean
   profileInitial?: string
   avatarFormAction?: (formData: FormData) => void | Promise<void>
+  avatarHref?: string
   sticky?: boolean
 }
 
@@ -15,6 +16,7 @@ export default function SharedHeader({
   showSettingsIcon = false,
   profileInitial,
   avatarFormAction,
+  avatarHref,
   sticky = true,
 }: Props) {
   const headerClass = [
@@ -53,6 +55,14 @@ export default function SharedHeader({
                   {profileInitial}
                 </button>
               </form>
+            ) : avatarHref ? (
+              <Link
+                href={avatarHref}
+                aria-label={profileInitial}
+                className="w-10 h-10 rounded-full bg-transparent border-2 border-black text-black font-semibold text-2xl flex items-center justify-center font-[family-name:var(--font-outfit)] hover:bg-gray-100 transition-colors"
+              >
+                {profileInitial}
+              </Link>
             ) : (
               <div
                 className="w-10 h-10 rounded-full bg-transparent border-2 border-black text-black font-semibold text-2xl flex items-center justify-center font-[family-name:var(--font-outfit)]"

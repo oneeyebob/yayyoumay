@@ -77,7 +77,7 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
             <div className="relative aspect-video w-full">
               <iframe
                 key={activeVideo.id}
-                src={`https://www.youtube.com/embed/${activeVideo.id}?autoplay=1&rel=0&disablekb=1&modestbranding=1&enablejsapi=1`}
+                src={`https://www.youtube.com/embed/${activeVideo.id}?autoplay=1&rel=0&disablekb=1&modestbranding=1&enablejsapi=1&origin=https://yayyoumay.dk`}
                 title={activeVideo.title}
                 allow="autoplay; encrypted-media; picture-in-picture; web-share"
                 allowFullScreen
@@ -108,6 +108,13 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
           </div>
         )}
       </div>
+
+      {/* Tip — shown when no video is playing */}
+      {!activeVideo && (
+        <p className="text-xs text-center text-gray-400 mt-2">
+          Tip: Log ind på YouTube i denne browser for den bedste oplevelse
+        </p>
+      )}
 
       {/* Scrollable feed below the sticky unit */}
       <JuniorFeed

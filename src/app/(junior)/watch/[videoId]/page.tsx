@@ -251,7 +251,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
       {/* Video embed — 16:9 full width */}
       <div className="w-full aspect-video bg-black">
         <iframe
-          src={`https://www.youtube.com/embed/${ytVideoId}?autoplay=1&rel=0&modestbranding=1`}
+          src={`https://www.youtube.com/embed/${ytVideoId}?autoplay=1&rel=0&modestbranding=1&origin=https://yayyoumay.dk`}
           title={videoTitle}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen

@@ -410,7 +410,7 @@ export async function updateListFilters(
   listId: string,
   langFilter: string | null,
   ageFilter: string | null
-): Promise<{ error?: string }> {
+): Promise<{ error: string | null }> {
   const supabase = await createClient()
   const {
     data: { user },
@@ -422,7 +422,7 @@ export async function updateListFilters(
     .update({ lang_filter: langFilter, age_filter: ageFilter })
     .eq('id', listId)
 
-  return error ? { error: error.message } : {}
+  return error ? { error: error.message } : { error: null }
 }
 
 // ── Browse: yay from embed ─────────────────────────────────────────────────────

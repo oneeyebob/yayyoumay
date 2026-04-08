@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import Image from 'next/image'
-import { searchAction, yayVideoFromEmbed, yayChannelFromEmbed, getPopularVideosAction } from '@/app/curator/actions'
+import { searchAction, yayVideoFromEmbed, yayChannelFromEmbed } from '@/app/curator/actions'
 import SharedHeader from '@/components/shared/SharedHeader'
 import type { YouTubeSearchResult } from '@/lib/youtube/types'
 
@@ -20,50 +20,19 @@ function fromSearchResult(r: YouTubeSearchResult): BrowseVideo {
 
 interface Props {
   profileName: string | null
-  initialVideos: YouTubeSearchResult[]
   langFilter: string | null
 }
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
-  }
-  return a
-}
-
-export default function BrowseUI({ profileName, initialVideos, langFilter }: Props) {
+export default function BrowseUI({ profileName, langFilter }: Props) {
   const [query, setQuery] = useState('')
   const [searchedQuery, setSearchedQuery] = useState<string | null>(null)
   const [searchResults, setSearchResults] = useState<BrowseVideo[]>([])
   const [isSearching, startSearch] = useTransition()
-  // Initialize with first 24 unshuffled to avoid SSR/client hydration mismatch.
-  // Shuffle client-side only after mount.
-  const [popularVideos, setPopularVideos] = useState<BrowseVideo[]>(
-    initialVideos.slice(0, 24).map(fromSearchResult)
-  )
-  useEffect(() => {
-    console.log('[BrowseUI] initialVideos count:', initialVideos.length, initialVideos.slice(0, 2))
-    setPopularVideos(shuffle(initialVideos.map(fromSearchResult)).slice(0, 24))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  const [isShaking, startShake] = useTransition()
   const [activeVideo, setActiveVideo] = useState<BrowseVideo | null>(null)
   const [saving, setSaving] = useState<'video' | 'channel' | null>(null)
   const [feedback, setFeedback] = useState<{ type: 'video' | 'channel'; ok: boolean } | null>(null)
 
   const isShowingSearch = searchedQuery !== null
-  const visibleVideos = isShowingSearch ? searchResults : popularVideos
-
-  function handleShake() {
-    startShake(async () => {
-      const fresh = await getPopularVideosAction(langFilter)
-      setPopularVideos(shuffle(fresh.map(fromSearchResult)).slice(0, 24))
-      setSearchedQuery(null)
-      setSearchResults([])
-      setQuery('')
-    })
-  }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -225,7 +194,7 @@ export default function BrowseUI({ profileName, initialVideos, langFilter }: Pro
               <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden />
             ) : 'Søg'}
           </button>
-          {isShowingSearch ? (
+          {isShowingSearch && (
             <button
               type="button"
               onClick={clearSearch}
@@ -233,27 +202,14 @@ export default function BrowseUI({ profileName, initialVideos, langFilter }: Pro
             >
               Ryd
             </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleShake}
-              disabled={isShaking}
-              className="shrink-0 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              {isShaking ? (
-                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
-              ) : 'Ryst posen'}
-            </button>
           )}
         </form>
 
         {/* Section heading */}
-        {!isSearching && (
+        {isShowingSearch && !isSearching && (
           <div className="max-w-4xl mx-auto w-full">
             <h2 className="text-sm font-semibold text-gray-700">
-              {isShowingSearch
-                ? `Søgeresultater for "${searchedQuery}"`
-                : 'Populære videoer'}
+              Søgeresultater for &ldquo;{searchedQuery}&rdquo;
             </h2>
           </div>
         )}
@@ -283,9 +239,9 @@ export default function BrowseUI({ profileName, initialVideos, langFilter }: Pro
         )}
 
         {/* Video grid */}
-        {!isSearching && visibleVideos.length > 0 && (
+        {!isSearching && searchResults.length > 0 && (
           <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-4xl mx-auto w-full">
-            {visibleVideos.map((video) => (
+            {searchResults.map((video) => (
               <ResultCard
                 key={video.id}
                 video={video}

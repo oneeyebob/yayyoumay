@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useId } from 'react'
+import { useState, useId, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -41,35 +41,22 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
   const [query, setQuery] = useState('')
   const [activeSuggestion, setActiveSuggestion] = useState(-1)
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [shuffled, setShuffled] = useState(true)
-  // Initialize with original order — shuffle client-side only (after mount)
-  // to avoid SSR/client hydration mismatch from Math.random()
-  const [shuffledOrder, setShuffledOrder] = useState<FeedVideo[]>(videos)
-  useEffect(() => {
-    setShuffledOrder([...videos].sort(() => Math.random() - 0.5))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const [page, setPage] = useState(0)
+  const gridRef = useRef<HTMLDivElement>(null)
   const inputId = useId()
   const listboxId = useId()
 
+  const PAGE_SIZE = 18
   const trimmed = query.trim().toLowerCase()
-
-  // ── Shuffle ──────────────────────────────────────────────────────────────
-
-  function toggleShuffle() {
-    if (!shuffled) {
-      // Re-randomise when turning back on
-      setShuffledOrder([...videos].sort(() => Math.random() - 0.5))
-    }
-    setShuffled((s) => !s)
-  }
-
-  const orderedVideos = shuffled ? shuffledOrder : videos
 
   // ── Filtered lists ───────────────────────────────────────────────────────
 
-  const visibleVideos = trimmed
-    ? orderedVideos.filter((v) => v.title.toLowerCase().includes(trimmed))
-    : orderedVideos
+  const filteredVideos = trimmed
+    ? videos.filter((v) => v.title.toLowerCase().includes(trimmed))
+    : videos
+
+  const totalPages = Math.max(1, Math.ceil(filteredVideos.length / PAGE_SIZE))
+  const visibleVideos = filteredVideos.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   const visibleChannels = trimmed
     ? channels.filter((c) => c.name.toLowerCase().includes(trimmed))
@@ -94,11 +81,17 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
     setQuery('')
     setShowSuggestions(false)
     setActiveSuggestion(-1)
+    setPage(0)
   }
 
   function handleTabChange(next: Tab) {
     setTab(next)
     clearSearch()
+  }
+
+  function handlePageChange(next: number) {
+    setPage(next)
+    gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -124,7 +117,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
   // ── Derived state ────────────────────────────────────────────────────────
 
   const isEmpty = tab === 'videoer' ? videos.length === 0 : channels.length === 0
-  const visibleForTab = tab === 'videoer' ? visibleVideos : visibleChannels
+  const visibleForTab = tab === 'videoer' ? filteredVideos : visibleChannels
   const noSearchMatch = !isEmpty && visibleForTab.length === 0 && !!trimmed
 
   return (
@@ -160,18 +153,6 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
           })}
         </div>
 
-        {/* Shuffle toggle — Videoer tab only */}
-        {tab === 'videoer' && (
-          <button
-            onClick={toggleShuffle}
-            aria-label={shuffled ? 'Slå bland fra' : 'Bland videoer'}
-            aria-pressed={shuffled}
-            className="shrink-0 px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
-            style={{ fontFamily: 'var(--font-outfit)' }}
-          >
-            Ryst posen
-          </button>
-        )}
       </div>
 
       {/* ── Search + autocomplete ──────────────────────────────────────────── */}
@@ -199,6 +180,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
             setQuery(e.target.value)
             setShowSuggestions(true)
             setActiveSuggestion(-1)
+            setPage(0)
           }}
           onFocus={() => { if (query.trim()) setShowSuggestions(true) }}
           onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
@@ -283,16 +265,64 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
           <p className="text-sm text-gray-400 mt-1">Prøv et andet søgeord.</p>
         </div>
       ) : tab === 'videoer' ? (
-        <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-4xl mx-auto w-full">
-          {visibleVideos.map((video) => (
-            <VideoCard
-              key={video.ytVideoId}
-              video={video}
-              onSelect={handleVideoSelect}
-              isActive={activeVideoId === video.ytVideoId}
-            />
-          ))}
-        </ul>
+        <div ref={gridRef} className="space-y-3 max-w-4xl mx-auto w-full">
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 py-2">
+              <button
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page === 0}
+                className="px-3 py-1 rounded-lg border border-gray-200 bg-white disabled:opacity-30 hover:bg-gray-50 transition-colors"
+                aria-label="Forrige side"
+              >
+                ←
+              </button>
+              <span className="text-sm text-gray-600" style={{ fontFamily: 'var(--font-outfit)' }}>
+                Side {page + 1} af {totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page >= totalPages - 1}
+                className="px-3 py-1 rounded-lg border border-gray-200 bg-white disabled:opacity-30 hover:bg-gray-50 transition-colors"
+                aria-label="Næste side"
+              >
+                →
+              </button>
+            </div>
+          )}
+          <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full">
+            {visibleVideos.map((video) => (
+              <VideoCard
+                key={video.ytVideoId}
+                video={video}
+                onSelect={handleVideoSelect}
+                isActive={activeVideoId === video.ytVideoId}
+              />
+            ))}
+          </ul>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 py-2">
+              <button
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page === 0}
+                className="px-3 py-1 rounded-lg border border-gray-200 bg-white disabled:opacity-30 hover:bg-gray-50 transition-colors"
+                aria-label="Forrige side"
+              >
+                ←
+              </button>
+              <span className="text-sm text-gray-600" style={{ fontFamily: 'var(--font-outfit)' }}>
+                Side {page + 1} af {totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page >= totalPages - 1}
+                className="px-3 py-1 rounded-lg border border-gray-200 bg-white disabled:opacity-30 hover:bg-gray-50 transition-colors"
+                aria-label="Næste side"
+              >
+                →
+              </button>
+            </div>
+          )}
+        </div>
       ) : (
         <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-4xl mx-auto w-full">
           {visibleChannels.map((ch) => (

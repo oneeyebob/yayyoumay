@@ -36,15 +36,8 @@ export default function ChannelPageClient({ channel, videos, profileName }: Prop
   const [query, setQuery] = useState('')
   const [activeSuggestion, setActiveSuggestion] = useState(-1)
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [shuffled, setShuffled] = useState(true)
-  const [shuffledOrder, setShuffledOrder] = useState<ChannelVideo[]>(videos)
   const inputId = useId()
   const listboxId = useId()
-
-  // Shuffle client-side only to avoid SSR/client hydration mismatch
-  useEffect(() => {
-    setShuffledOrder([...videos].sort(() => Math.random() - 0.5))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-play on mount: resume last played video if it's in this channel, else play first
   useEffect(() => {
@@ -57,22 +50,11 @@ export default function ChannelPageClient({ channel, videos, profileName }: Prop
 
   const trimmed = query.trim().toLowerCase()
 
-  // ── Shuffle ────────────────────────────────────────────────────────────────
-
-  function toggleShuffle() {
-    if (!shuffled) {
-      setShuffledOrder([...videos].sort(() => Math.random() - 0.5))
-    }
-    setShuffled((s) => !s)
-  }
-
-  const orderedVideos = shuffled ? shuffledOrder : videos
-
   // ── Filtered list ──────────────────────────────────────────────────────────
 
   const visibleVideos = trimmed
-    ? orderedVideos.filter((v) => v.title.toLowerCase().includes(trimmed))
-    : orderedVideos
+    ? videos.filter((v) => v.title.toLowerCase().includes(trimmed))
+    : videos
 
   // ── Autocomplete suggestions ───────────────────────────────────────────────
 
@@ -222,16 +204,6 @@ export default function ChannelPageClient({ channel, videos, profileName }: Prop
             </Link>
           </div>
 
-          {/* Shuffle toggle */}
-          <button
-            onClick={toggleShuffle}
-            aria-label={shuffled ? 'Slå bland fra' : 'Bland videoer'}
-            aria-pressed={shuffled}
-            className="shrink-0 px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
-            style={{ fontFamily: 'var(--font-outfit)' }}
-          >
-            Ryst posen
-          </button>
         </div>
 
         {/* ── Search + autocomplete ────────────────────────────────────────── */}

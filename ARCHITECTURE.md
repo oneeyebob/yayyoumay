@@ -172,14 +172,22 @@ Markeret: // DEV NAV — remove before launch i src/app/layout.tsx
 - UI/UX polish runde
 - Fjern DEV nav, erstat med rigtig navigation
 - Tilføj Profiler-knap tilbage på kurator-dashboard
+- Paste YouTube URL direkte ind i kuratorlisten (parser video-ID, koster ~1 API unit vs. 100 for søgning)
 
 ### V1.5
 - Community og follow-funktionen
 - Profil-billede/avatar upload
+- Jakobs kuraterede kanal-liste som andre brugere kan abonnere på som udgangspunkt
+- "Følg en skolekammerats liste" — social deling af whitelists
 
 ### V2
 - AI-drevet indholdsvurdering (Anthropic API)
 - Abonnementsmodel
+
+### API økonomi
+- YouTube Data API: søgning koster 100 units, kanal-opslag ~200 units, video-opslag ~1 unit
+- Browse-siden starter tom (ingen autoload) for at spare units
+- Paste URL-feature som alternativ til søgning sparer 99 units per tilføjelse
 
 ### UX feedback der venter
 - Kortene i juniormode kan blive mere YouTube-agtige

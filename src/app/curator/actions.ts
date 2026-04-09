@@ -471,6 +471,29 @@ export async function yayChannelFromEmbed(
   }
 }
 
+// ── Nay from junior feed ──────────────────────────────────────────────────────
+
+export async function nayVideoFromJunior(
+  videoId: string,
+  listId: string,
+): Promise<{ error: string | null }> {
+  try {
+    const video = await getVideo(videoId)
+    return yayNayAction({
+      type: 'video',
+      ytId: video.id,
+      ytTitle: video.title,
+      ytThumbnail: video.thumbnail.url,
+      channelId: video.channelId,
+      channelTitle: video.channelTitle,
+      status: 'nay',
+      listId,
+    })
+  } catch {
+    return { error: 'Kunne ikke hente videoinfo.' }
+  }
+}
+
 // ── Add from URL ──────────────────────────────────────────────────────────────
 
 export async function addFromUrl(

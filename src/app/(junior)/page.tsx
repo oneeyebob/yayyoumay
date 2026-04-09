@@ -203,14 +203,26 @@ export default async function JuniorPage({
     }
   }
 
+  // 7. Keyword filtering
+  const { data: keywords } = await supabase
+    .from('keyword_blacklist')
+    .select('keyword')
+    .eq('user_id', user.id)
+
+  const blacklist = keywords?.map((k) => k.keyword.toLowerCase()) ?? []
+  const filteredVideos = blacklist.length > 0
+    ? feedVideos.filter((v) => !blacklist.some((kw) => v.title.toLowerCase().includes(kw)))
+    : feedVideos
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <JuniorPageClient
-      videos={feedVideos}
+      videos={filteredVideos}
       channels={feedChannels}
       profileName={activeProfile.name}
       initialTab={initialTab}
+      listId={listIds[0] ?? null}
     />
   )
 }

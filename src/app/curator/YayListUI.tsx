@@ -27,9 +27,15 @@ export interface YayVideo {
   videos: VideoData | VideoData[] | null
 }
 
+export interface NayVideo {
+  id: string
+  videos: VideoData | VideoData[] | null
+}
+
 interface Props {
   yayChannels: YayChannel[]
   yayVideos: YayVideo[]
+  nayVideos: NayVideo[]
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -52,11 +58,13 @@ function ItemRow({
   id,
   title,
   thumbnailUrl,
+  removeLabel = 'Fjern',
   onRemoved,
 }: {
   id: string
   title: string
   thumbnailUrl: string | null
+  removeLabel?: string
   onRemoved: (id: string) => void
 }) {
   const [confirming, setConfirming] = useState(false)
@@ -100,7 +108,7 @@ function ItemRow({
           onClick={() => setConfirming(true)}
           className="shrink-0 text-xs text-gray-400 hover:text-red-500 transition-colors"
         >
-          Fjern
+          {removeLabel}
         </button>
       )}
     </div>
@@ -109,9 +117,10 @@ function ItemRow({
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
-export default function YayListUI({ yayChannels, yayVideos }: Props) {
+export default function YayListUI({ yayChannels, yayVideos, nayVideos }: Props) {
   const [channels, setChannels] = useState(yayChannels)
   const [videos, setVideos] = useState(yayVideos)
+  const [blocked, setBlocked] = useState(nayVideos)
 
   return (
     <div className="space-y-5">
@@ -157,6 +166,31 @@ export default function YayListUI({ yayChannels, yayVideos }: Props) {
                   title={v.title}
                   thumbnailUrl={v.thumbnail_url}
                   onRemoved={(id) => setVideos((prev) => prev.filter((vi) => vi.id !== id))}
+                />
+              )
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* Blokerede videoer */}
+      <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <h2 className="font-bold text-gray-900 mb-3">Blokerede videoer</h2>
+        {blocked.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">Ingen blokerede videoer</p>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {blocked.map((item) => {
+              const v = resolveVideo(item)
+              if (!v) return null
+              return (
+                <ItemRow
+                  key={item.id}
+                  id={item.id}
+                  title={v.title}
+                  thumbnailUrl={v.thumbnail_url}
+                  removeLabel="Fjern blokering"
+                  onRemoved={(id) => setBlocked((prev) => prev.filter((b) => b.id !== id))}
                 />
               )
             })}

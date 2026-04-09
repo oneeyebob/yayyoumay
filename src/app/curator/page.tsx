@@ -3,11 +3,9 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import SharedHeader from '@/components/shared/SharedHeader'
 import CuratorGate from './CuratorGate'
-import SearchUI from './SearchUI'
 import PasteUrlUI from './PasteUrlUI'
-import FiltersUI from './FiltersUI'
 import SettingsUI, { type KeywordRow } from './settings/SettingsUI'
-import YayListUI, { type YayChannel, type YayVideo } from './YayListUI'
+import YayListUI, { type YayChannel, type YayVideo, type NayVideo } from './YayListUI'
 
 export default async function CuratorPage() {
   const cookieStore = await cookies()
@@ -38,23 +36,19 @@ export default async function CuratorPage() {
     profileName = activeProfile?.name ?? null
   }
 
-  // Load active profile's list filters
+  // Load active profile's list id
   let listId: string | null = null
-  let langFilter: string | null = null
-  let ageFilter: string | null = null
 
   if (activeProfileId) {
     const { data: list } = await supabase
       .from('lists')
-      .select('id, lang_filter, age_filter')
+      .select('id')
       .eq('profile_id', activeProfileId)
       .order('created_at', { ascending: true })
       .limit(1)
       .single()
     if (list) {
       listId = list.id
-      langFilter = list.lang_filter ?? null
-      ageFilter = list.age_filter ?? null
     }
   }
 
@@ -80,6 +74,15 @@ export default async function CuratorPage() {
     .select('id, videos(id, title, thumbnail_url)')
     .eq('list_id', listId)
     .eq('status', 'yay')
+    .not('video_id', 'is', null)
+    .order('created_at', { ascending: false }) : { data: [] }
+
+  // Nay'd (blocked) videos
+  const { data: nayVideos } = listId ? await supabase
+    .from('list_items')
+    .select('id, videos(id, title, thumbnail_url)')
+    .eq('list_id', listId)
+    .eq('status', 'nay')
     .not('video_id', 'is', null)
     .order('created_at', { ascending: false }) : { data: [] }
 
@@ -113,22 +116,10 @@ export default async function CuratorPage() {
           )}
         </div>
 
-        {/* Search + results */}
-        <SearchUI />
-
         {/* Paste URL */}
         {listId && <PasteUrlUI listId={listId} />}
 
         <hr className="border-t border-gray-200" />
-
-        {/* Content filters */}
-        {listId && (
-          <FiltersUI
-            listId={listId}
-            initialLangFilter={langFilter}
-            initialAgeFilter={ageFilter}
-          />
-        )}
 
         {/* Settings: keyword blacklist + ads info */}
         <SettingsUI initialKeywords={keywords} />
@@ -137,6 +128,7 @@ export default async function CuratorPage() {
         <YayListUI
           yayChannels={(yayChannels ?? []) as YayChannel[]}
           yayVideos={(yayVideos ?? []) as YayVideo[]}
+          nayVideos={(nayVideos ?? []) as NayVideo[]}
         />
 
       </div>

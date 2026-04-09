@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { goHomeAction } from '../actions'
+import { nayVideoFromJunior } from '../curator/actions'
 import SharedHeader from '@/components/shared/SharedHeader'
 import JuniorFeed, { type FeedVideo, type FeedChannel } from './JuniorFeed'
 
@@ -17,17 +18,40 @@ interface Props {
   channels: FeedChannel[]
   profileName: string
   initialTab?: 'videoer' | 'kanaler'
+  listId: string | null
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function JuniorPageClient({ videos, channels, profileName, initialTab }: Props) {
+export default function JuniorPageClient({ videos, channels, profileName, initialTab, listId }: Props) {
   const [activeVideo, setActiveVideo] = useState<ActiveVideo | null>(null)
   const [iframeLoaded, setIframeLoaded] = useState<string | null>(null)
+  const [history, setHistory] = useState<ActiveVideo[]>([])
+  const [blockConfirm, setBlockConfirm] = useState(false)
 
   function selectVideo(video: ActiveVideo) {
-    if (video.id !== activeVideo?.id) setIframeLoaded(null)
+    if (video.id !== activeVideo?.id) {
+      if (activeVideo) setHistory((prev) => [...prev.slice(-4), activeVideo])
+      setIframeLoaded(null)
+      setBlockConfirm(false)
+    }
     setActiveVideo(video)
+  }
+
+  function goBack() {
+    const prev = history[history.length - 1]
+    if (!prev) return
+    setHistory((h) => h.slice(0, -1))
+    setIframeLoaded(null)
+    setBlockConfirm(false)
+    setActiveVideo(prev)
+  }
+
+  async function handleBlock() {
+    if (!activeVideo || !listId) return
+    await nayVideoFromJunior(activeVideo.id, listId)
+    setActiveVideo(null)
+    setBlockConfirm(false)
   }
 
   // Auto-play on mount: resume last played video if it's in the list, else play first
@@ -129,6 +153,49 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
                 <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
               </svg>
             </button>
+
+            {/* Tilbage button */}
+            {history.length > 0 && (
+              <button
+                onClick={goBack}
+                aria-label="Tilbage"
+                className="absolute bottom-2 left-2 bg-black/50 text-white px-3 py-1 rounded-lg text-sm hover:bg-black/70 transition-colors"
+              >
+                ←
+              </button>
+            )}
+
+            {/* Bloker button */}
+            {listId && (
+              <button
+                onClick={() => setBlockConfirm(true)}
+                aria-label="Bloker video"
+                className="absolute bottom-2 right-2 bg-black/50 text-white px-3 py-1 rounded-lg text-sm hover:bg-black/70 transition-colors"
+              >
+                🚫
+              </button>
+            )}
+
+            {/* Block confirmation overlay */}
+            {blockConfirm && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 z-50 gap-3">
+                <p className="text-white font-semibold text-sm text-center px-4">Bloker denne video?</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleBlock}
+                    className="bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Ja, bloker
+                  </button>
+                  <button
+                    onClick={() => setBlockConfirm(false)}
+                    className="bg-white/20 hover:bg-white/30 text-white text-sm px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Annuller
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           </div>
         )}

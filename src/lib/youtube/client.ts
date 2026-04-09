@@ -174,6 +174,33 @@ export async function getChannel(channelId: string): Promise<YouTubeChannel> {
   }
 }
 
+// ── getChannelByHandle ────────────────────────────────────────────────────────
+
+export async function getChannelByHandle(handle: string): Promise<YouTubeChannel> {
+  const raw = await ytFetch<RawChannelResponse>('channels', {
+    part: 'snippet,statistics',
+    forHandle: handle,
+  })
+
+  const item = raw.items?.[0]
+  if (!item) throw new Error(`[YouTube] Channel not found for handle: ${handle}`)
+
+  return {
+    id: item.id,
+    title: item.snippet.title,
+    description: item.snippet.description,
+    thumbnail: bestThumbnail(item.snippet.thumbnails),
+    customUrl: item.snippet.customUrl ?? null,
+    subscriberCount: item.statistics.hiddenSubscriberCount
+      ? null
+      : parseInt(item.statistics.subscriberCount ?? '0', 10),
+    videoCount: item.statistics.videoCount
+      ? parseInt(item.statistics.videoCount, 10)
+      : null,
+    publishedAt: item.snippet.publishedAt ?? null,
+  }
+}
+
 // ── getVideo ──────────────────────────────────────────────────────────────────
 
 interface RawVideoResponse {

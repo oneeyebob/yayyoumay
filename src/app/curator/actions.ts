@@ -9,7 +9,7 @@ export async function lockCurator() {
   cookieStore.delete('curator_unlocked')
   redirect('/')
 }
-import { searchYouTube, getVideo, getChannel, getPopularVideosForLanguages } from '@/lib/youtube/client'
+import { searchYouTube, getVideo, getChannel, getChannelByHandle, getPopularVideosForLanguages } from '@/lib/youtube/client'
 import type { YouTubeSearchResponse } from '@/lib/youtube/types'
 
 // ── Search ────────────────────────────────────────────────────────────────────
@@ -469,6 +469,94 @@ export async function yayChannelFromEmbed(
   } catch {
     return { error: 'Kunne ikke hente kanalinfo.' }
   }
+}
+
+// ── Add from URL ──────────────────────────────────────────────────────────────
+
+export async function addFromUrl(
+  url: string,
+  listId: string,
+): Promise<{ error: string | null; type?: 'video' | 'channel'; title?: string }> {
+  let parsed: URL
+  try { parsed = new URL(url.trim()) } catch { return { error: 'Ugyldig URL.' } }
+
+  const host = parsed.hostname.replace(/^www\./, '')
+  const path = parsed.pathname
+
+  let videoId: string | null = null
+  let channelId: string | null = null
+  let channelHandle: string | null = null
+
+  if (host === 'youtu.be') {
+    videoId = path.slice(1).split('/')[0] || null
+  } else if (host === 'youtube.com') {
+    if (path.startsWith('/watch')) {
+      videoId = parsed.searchParams.get('v')
+    } else if (path.startsWith('/channel/')) {
+      channelId = path.split('/channel/')[1]?.split('/')[0] || null
+    } else if (path.startsWith('/@')) {
+      channelHandle = path.slice(2).split('/')[0] || null
+    } else if (path.startsWith('/c/')) {
+      channelHandle = path.split('/c/')[1]?.split('/')[0] || null
+    } else if (path.startsWith('/user/')) {
+      channelHandle = path.split('/user/')[1]?.split('/')[0] || null
+    }
+  }
+
+  if (!videoId && !channelId && !channelHandle) {
+    return { error: 'URL-formatet genkendes ikke.' }
+  }
+
+  try {
+    if (videoId) {
+      const video = await getVideo(videoId)
+      const res = await yayNayAction({
+        type: 'video',
+        ytId: video.id,
+        ytTitle: video.title,
+        ytThumbnail: video.thumbnail.url,
+        channelId: video.channelId,
+        channelTitle: video.channelTitle,
+        status: 'yay',
+        listId,
+      })
+      if (res.error) return { error: res.error }
+      return { error: null, type: 'video', title: video.title }
+    }
+
+    if (channelId) {
+      const channel = await getChannel(channelId)
+      const res = await yayNayAction({
+        type: 'channel',
+        ytId: channel.id,
+        ytTitle: channel.title,
+        ytThumbnail: channel.thumbnail.url,
+        status: 'yay',
+        listId,
+      })
+      if (res.error) return { error: res.error }
+      return { error: null, type: 'channel', title: channel.title }
+    }
+
+    if (channelHandle) {
+      // Uses channels?forHandle= (~1 quota unit, not search)
+      const channel = await getChannelByHandle(channelHandle)
+      const res = await yayNayAction({
+        type: 'channel',
+        ytId: channel.id,
+        ytTitle: channel.title,
+        ytThumbnail: channel.thumbnail.url,
+        status: 'yay',
+        listId,
+      })
+      if (res.error) return { error: res.error }
+      return { error: null, type: 'channel', title: channel.title }
+    }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'Noget gik galt.' }
+  }
+
+  return { error: 'Ukendt fejl.' }
 }
 
 export async function getPopularVideosAction(

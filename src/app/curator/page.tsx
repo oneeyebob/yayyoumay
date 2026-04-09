@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import SharedHeader from '@/components/shared/SharedHeader'
 import CuratorGate from './CuratorGate'
 import SearchUI from './SearchUI'
+import PasteUrlUI from './PasteUrlUI'
 import FiltersUI from './FiltersUI'
 import SettingsUI, { type KeywordRow } from './settings/SettingsUI'
 import YayListUI, { type YayChannel, type YayVideo } from './YayListUI'
@@ -114,6 +115,9 @@ export default async function CuratorPage() {
 
         {/* Search + results */}
         <SearchUI />
+
+        {/* Paste URL */}
+        {listId && <PasteUrlUI listId={listId} />}
 
         <hr className="border-t border-gray-200" />
 

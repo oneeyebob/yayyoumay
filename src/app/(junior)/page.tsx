@@ -166,14 +166,80 @@ export default async function JuniorPage({
       })
       .filter((c): c is FeedChannel => c !== null)
 
-    // 6e. Fetch latest videos from each yay'd channel via YouTube API (in parallel).
-    //     Nay'd videos are filtered out even if their channel is yay'd.
+    // 6e. Fetch latest videos from each yay'd channel, using channel_cache to
+    //     avoid redundant YouTube API calls. If a channel was fetched within the
+    //     last 24 hours AND we have ≥5 videos stored, serve from DB. Otherwise
+    //     call the API, upsert results, and refresh the cache timestamp.
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+
     const channelVideoArrays = await Promise.all(
       yayChannelItems.map(async (item) => {
         const ch = Array.isArray(item.channel) ? item.channel[0] : item.channel
-        if (!ch?.yt_channel_id) return []
+        if (!ch?.yt_channel_id || !ch?.id) return []
+
+        // Check cache freshness
+        const { data: cacheRow } = await supabase
+          .from('channel_cache')
+          .select('last_fetched_at')
+          .eq('channel_id', ch.id)
+          .single()
+
+        const isFresh = cacheRow && cacheRow.last_fetched_at > cutoff
+
+        if (isFresh) {
+          // Serve from DB if we have enough videos
+          const { data: cachedVideos } = await supabase
+            .from('videos')
+            .select('yt_video_id, title, thumbnail_url')
+            .eq('channel_id', ch.id)
+            .order('published_at', { ascending: false })
+            .limit(20)
+
+          console.log(`[cache] HIT  channel=${ch.id} db_videos=${cachedVideos?.length ?? 0}`)
+
+          if (cachedVideos && cachedVideos.length >= 5) {
+            return cachedVideos
+              .filter((v) => !nayYtVideoIds.has(v.yt_video_id))
+              .map((v) => ({
+                ytVideoId: v.yt_video_id,
+                title: v.title,
+                thumbnailUrl: v.thumbnail_url,
+                channelName: ch.name,
+              }))
+          }
+
+          console.log(`[cache] HIT but <5 videos in DB — falling through to API`)
+        } else {
+          console.log(`[cache] MISS channel=${ch.id} cacheRow=${JSON.stringify(cacheRow)}`)
+        }
+
+        // Cache miss or stale — fetch from YouTube API
         try {
           const result = await getChannelVideos(ch.yt_channel_id, 20)
+
+          // Upsert videos into DB
+          if (result.videos.length > 0) {
+            const { error: upsertVideosError } = await supabase.from('videos').upsert(
+              result.videos.map((v) => ({
+                yt_video_id: v.id,
+                channel_id: ch.id,
+                title: v.title,
+                thumbnail_url: v.thumbnail.url,
+                duration_seconds: v.durationSeconds,
+                published_at: v.publishedAt,
+              })),
+              { onConflict: 'yt_video_id' }
+            )
+            console.log(`[cache] videos upsert: ${upsertVideosError ? `ERROR ${upsertVideosError.message}` : `OK (${result.videos.length} rows)`}`)
+          }
+
+          // Refresh cache timestamp
+          const { error: upsertCacheError } = await supabase.from('channel_cache').upsert(
+            { channel_id: ch.id, last_fetched_at: new Date().toISOString() },
+            { onConflict: 'channel_id' }
+          )
+          console.log(`[cache] channel_cache upsert: ${upsertCacheError ? `ERROR ${upsertCacheError.message}` : 'OK'}`)
+
           return result.videos
             .filter((v) => !nayYtVideoIds.has(v.id))
             .map((v) => ({

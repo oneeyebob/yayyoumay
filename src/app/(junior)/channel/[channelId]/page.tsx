@@ -48,17 +48,67 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
 
   if (!channel) redirect('/')
 
-  // 4. Fetch latest videos from YouTube API (same logic as junior feed)
+  // 4. Fetch latest videos — use channel_cache to avoid redundant API calls.
+  //    If fetched within 24h AND ≥5 videos in DB: serve from DB. Otherwise hit API.
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+
   let apiVideos: { id: string; title: string; thumbnailUrl: string | null }[] = []
-  try {
-    const result = await getChannelVideos(ytChannelId, 30)
-    apiVideos = result.videos.map((v) => ({
-      id: v.id,
-      title: v.title,
-      thumbnailUrl: v.thumbnail.url,
-    }))
-  } catch {
-    // Quota exhausted or network error — degrade gracefully
+
+  const { data: cacheRow } = await supabase
+    .from('channel_cache')
+    .select('last_fetched_at')
+    .eq('channel_id', channel.id)
+    .single()
+
+  const isFresh = cacheRow && cacheRow.last_fetched_at > cutoff
+
+  if (isFresh) {
+    const { data: cachedVideos } = await supabase
+      .from('videos')
+      .select('yt_video_id, title, thumbnail_url')
+      .eq('channel_id', channel.id)
+      .order('published_at', { ascending: false })
+      .limit(30)
+
+    if (cachedVideos && cachedVideos.length >= 5) {
+      apiVideos = cachedVideos.map((v) => ({
+        id: v.yt_video_id,
+        title: v.title,
+        thumbnailUrl: v.thumbnail_url,
+      }))
+    }
+  }
+
+  if (apiVideos.length === 0) {
+    try {
+      const result = await getChannelVideos(ytChannelId, 30)
+      apiVideos = result.videos.map((v) => ({
+        id: v.id,
+        title: v.title,
+        thumbnailUrl: v.thumbnail.url,
+      }))
+
+      if (result.videos.length > 0) {
+        await supabase.from('videos').upsert(
+          result.videos.map((v) => ({
+            yt_video_id: v.id,
+            channel_id: channel.id,
+            title: v.title,
+            thumbnail_url: v.thumbnail.url,
+            duration_seconds: v.durationSeconds,
+            published_at: v.publishedAt,
+          })),
+          { onConflict: 'yt_video_id' }
+        )
+      }
+
+      await supabase.from('channel_cache').upsert(
+        { channel_id: channel.id, last_fetched_at: new Date().toISOString() },
+        { onConflict: 'channel_id' }
+      )
+    } catch {
+      // Quota exhausted or network error — degrade gracefully
+    }
   }
 
   // 5. Load explicitly nay'd yt_video_ids for this user so we can exclude them

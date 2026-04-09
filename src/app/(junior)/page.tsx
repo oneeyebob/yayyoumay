@@ -195,8 +195,6 @@ export default async function JuniorPage({
             .order('published_at', { ascending: false })
             .limit(20)
 
-          console.log(`[cache] HIT  channel=${ch.id} db_videos=${cachedVideos?.length ?? 0}`)
-
           if (cachedVideos && cachedVideos.length >= 5) {
             return cachedVideos
               .filter((v) => !nayYtVideoIds.has(v.yt_video_id))
@@ -208,9 +206,6 @@ export default async function JuniorPage({
               }))
           }
 
-          console.log(`[cache] HIT but <5 videos in DB — falling through to API`)
-        } else {
-          console.log(`[cache] MISS channel=${ch.id} cacheRow=${JSON.stringify(cacheRow)}`)
         }
 
         // Cache miss or stale — fetch from YouTube API
@@ -219,7 +214,7 @@ export default async function JuniorPage({
 
           // Upsert videos into DB
           if (result.videos.length > 0) {
-            const { error: upsertVideosError } = await supabase.from('videos').upsert(
+            await supabase.from('videos').upsert(
               result.videos.map((v) => ({
                 yt_video_id: v.id,
                 channel_id: ch.id,
@@ -230,15 +225,13 @@ export default async function JuniorPage({
               })),
               { onConflict: 'yt_video_id' }
             )
-            console.log(`[cache] videos upsert: ${upsertVideosError ? `ERROR ${upsertVideosError.message}` : `OK (${result.videos.length} rows)`}`)
           }
 
           // Refresh cache timestamp
-          const { error: upsertCacheError } = await supabase.from('channel_cache').upsert(
+          await supabase.from('channel_cache').upsert(
             { channel_id: ch.id, last_fetched_at: new Date().toISOString() },
             { onConflict: 'channel_id' }
           )
-          console.log(`[cache] channel_cache upsert: ${upsertCacheError ? `ERROR ${upsertCacheError.message}` : 'OK'}`)
 
           return result.videos
             .filter((v) => !nayYtVideoIds.has(v.id))

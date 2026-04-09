@@ -1,7 +1,14 @@
 'use server'
 
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+
+export async function lockCurator() {
+  const cookieStore = await cookies()
+  cookieStore.delete('curator_unlocked')
+  redirect('/')
+}
 import { searchYouTube, getVideo, getChannel, getPopularVideosForLanguages } from '@/lib/youtube/client'
 import type { YouTubeSearchResponse } from '@/lib/youtube/types'
 

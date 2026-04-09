@@ -84,6 +84,7 @@ export default function BrowseUI({ profileName, langFilter }: Props) {
           showAvatar={!!profileName}
           profileInitial={profileName?.charAt(0).toUpperCase()}
           sticky={false}
+          showLockButton={true}
         />
 
         {/* Inline player */}

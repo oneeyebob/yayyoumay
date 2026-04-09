@@ -90,6 +90,7 @@ export default async function CuratorPage() {
         showAvatar={!!profileName}
         profileInitial={profileName?.charAt(0).toUpperCase()}
         avatarHref="/curator/profiles"
+        showLockButton={true}
       />
 
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">

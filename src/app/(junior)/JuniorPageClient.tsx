@@ -23,6 +23,12 @@ interface Props {
 
 export default function JuniorPageClient({ videos, channels, profileName, initialTab }: Props) {
   const [activeVideo, setActiveVideo] = useState<ActiveVideo | null>(null)
+  const [iframeLoaded, setIframeLoaded] = useState<string | null>(null)
+
+  function selectVideo(video: ActiveVideo) {
+    if (video.id !== activeVideo?.id) setIframeLoaded(null)
+    setActiveVideo(video)
+  }
 
   // Auto-play on mount: resume last played video if it's in the list, else play first
   useEffect(() => {
@@ -31,6 +37,7 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
     const match = lastId ? videos.find((v) => v.ytVideoId === lastId) : null
     const target = match ?? videos[0]
     setActiveVideo({ id: target.ytVideoId, title: target.title })
+    setIframeLoaded(null)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Skip to next video when YouTube reports an error (e.g. video unavailable)
@@ -69,23 +76,41 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
         {activeVideo && (
           <div>
           <div className="relative bg-black overflow-hidden max-h-[50vh] max-w-4xl mx-auto w-full">
-            {/* relative + aspect-video gives a proper 16:9 box;
-                overflow-hidden on the outer clips it at 50vh.
-                iframe uses absolute inset-0 so it fills the box via
-                the bounding rect rather than percentage height
-                (percentage height doesn't resolve against aspect-ratio parents) */}
             <div className="relative aspect-video w-full">
-              <iframe
-                key={activeVideo.id}
-                src={`https://www.youtube-nocookie.com/embed/${activeVideo.id}?autoplay=1&rel=0&disablekb=1&modestbranding=1&enablejsapi=1&origin=https://yayyoumay.dk`}
-                title={activeVideo.title}
-                allow="autoplay; encrypted-media; picture-in-picture; web-share"
-                allowFullScreen
-                className="absolute inset-0 w-full h-full"
-              />
-              <div className="absolute top-0 left-0 right-0 z-50" style={{ height: 50 }} aria-hidden />
-              <div className="absolute bottom-0 left-0 right-0 z-50" style={{ height: 60 }} aria-hidden />
-              <div className="absolute bottom-20 right-4 z-50" style={{ width: 60, height: 50 }} aria-hidden />
+              {iframeLoaded === activeVideo.id ? (
+                <>
+                  <iframe
+                    key={activeVideo.id}
+                    src={`https://www.youtube-nocookie.com/embed/${activeVideo.id}?autoplay=1&rel=0&disablekb=1&modestbranding=1&enablejsapi=1&origin=https://yayyoumay.dk`}
+                    title={activeVideo.title}
+                    allow="autoplay; encrypted-media; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="absolute inset-0 w-full h-full"
+                  />
+                  <div className="absolute top-0 left-0 right-0 z-50" style={{ height: 50 }} aria-hidden />
+                  <div className="absolute bottom-0 left-0 right-0 z-50" style={{ height: 60 }} aria-hidden />
+                  <div className="absolute bottom-20 right-4 z-50" style={{ width: 60, height: 50 }} aria-hidden />
+                </>
+              ) : (
+                <button
+                  onClick={() => setIframeLoaded(activeVideo.id)}
+                  aria-label={`Afspil ${activeVideo.title}`}
+                  className="absolute inset-0 w-full h-full"
+                  style={{
+                    backgroundImage: `url(https://img.youtube.com/vi/${activeVideo.id}/hqdefault.jpg)`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                >
+                  <span className="absolute inset-0 flex items-center justify-center">
+                    <span className="flex items-center justify-center w-16 h-16 rounded-full bg-white/90 shadow-lg">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-8 h-8 text-black translate-x-0.5" aria-hidden>
+                        <path d="M6.3 2.84A1.5 1.5 0 0 0 4 4.11v11.78a1.5 1.5 0 0 0 2.3 1.27l9.344-5.891a1.5 1.5 0 0 0 0-2.538L6.3 2.841Z" />
+                      </svg>
+                    </span>
+                  </span>
+                </button>
+              )}
             </div>
 
             {/* Close button */}
@@ -120,7 +145,7 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
       <JuniorFeed
         videos={videos}
         channels={channels}
-        onVideoSelect={(v) => setActiveVideo(v)}
+        onVideoSelect={(v) => selectVideo(v)}
         activeVideoId={activeVideo?.id ?? null}
         initialTab={initialTab}
       />

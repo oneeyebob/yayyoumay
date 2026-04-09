@@ -1,10 +1,12 @@
 'use client'
 
 import Link from 'next/link'
+import { lockCurator } from '@/app/curator/actions'
 
 interface Props {
   showAvatar?: boolean
   showSettingsIcon?: boolean
+  showLockButton?: boolean
   profileInitial?: string
   avatarFormAction?: (formData: FormData) => void | Promise<void>
   avatarHref?: string
@@ -14,6 +16,7 @@ interface Props {
 export default function SharedHeader({
   showAvatar = false,
   showSettingsIcon = false,
+  showLockButton = false,
   profileInitial,
   avatarFormAction,
   avatarHref,
@@ -35,6 +38,19 @@ export default function SharedHeader({
           />
         </Link>
         <div className="flex items-center gap-3">
+          {showLockButton && (
+            <form action={lockCurator}>
+              <button
+                type="submit"
+                aria-label="Lås kuratormode"
+                className="w-10 h-10 flex items-center justify-center hover:opacity-70 transition-opacity"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="currentColor" className="w-10 h-10 text-gray-500" aria-hidden>
+                  <path fillRule="evenodd" d="M14 18v-4a6 6 0 1 1 12 0v4h1a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H13a3 3 0 0 1-3-3v-9a3 3 0 0 1 3-3h1Zm4-4a2 2 0 1 1 4 0v4h-4v-4Zm2 9a2 2 0 0 0-1 3.732V28a1 1 0 1 0 2 0v-1.268A2 2 0 0 0 20 23Z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </form>
+          )}
           {showSettingsIcon && (
             <Link
               href="/curator"

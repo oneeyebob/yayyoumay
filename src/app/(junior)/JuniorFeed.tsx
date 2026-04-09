@@ -140,7 +140,6 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-500 hover:text-gray-700',
                 ].join(' ')}
-                style={{ fontFamily: 'var(--font-outfit)' }}
               >
                 {t === 'videoer' ? 'Videoer' : 'Kanaler'}
                 {count > 0 && (
@@ -276,7 +275,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
               >
                 ←
               </button>
-              <span className="text-sm text-gray-600" style={{ fontFamily: 'var(--font-outfit)' }}>
+              <span className="text-sm text-gray-600" >
                 Side {page + 1} af {totalPages}
               </span>
               <button
@@ -309,7 +308,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
               >
                 ←
               </button>
-              <span className="text-sm text-gray-600" style={{ fontFamily: 'var(--font-outfit)' }}>
+              <span className="text-sm text-gray-600" >
                 Side {page + 1} af {totalPages}
               </span>
               <button

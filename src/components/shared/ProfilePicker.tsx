@@ -114,8 +114,7 @@ export default function ProfilePicker({ profiles }: ProfilePickerProps) {
                 {/* Name */}
                 <span
                   className="text-sm font-semibold text-gray-800 text-center leading-tight"
-                  style={{ fontFamily: 'var(--font-outfit)' }}
-                >
+                                  >
                   {profile.name}
                 </span>
               </button>
@@ -133,8 +132,7 @@ export default function ProfilePicker({ profiles }: ProfilePickerProps) {
             </div>
             <span
               className="text-sm font-semibold text-gray-400 text-center leading-tight"
-              style={{ fontFamily: 'var(--font-outfit)' }}
-            >
+                          >
               Ny profil
             </span>
           </button>

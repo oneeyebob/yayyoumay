@@ -66,7 +66,7 @@ export default function SharedHeader({
                 <button
                   type="submit"
                   aria-label={`Skift profil (${profileInitial})`}
-                  className="w-10 h-10 rounded-full bg-transparent border-2 border-black text-black font-semibold text-2xl flex items-center justify-center hover:bg-indigo-200 active:bg-indigo-300 transition-colors font-[family-name:var(--font-outfit)]"
+                  className="w-10 h-10 rounded-full bg-transparent border-2 border-black text-black font-semibold text-2xl flex items-center justify-center hover:bg-indigo-200 active:bg-indigo-300 transition-colors"
                 >
                   {profileInitial}
                 </button>
@@ -75,13 +75,13 @@ export default function SharedHeader({
               <Link
                 href={avatarHref}
                 aria-label={profileInitial}
-                className="w-10 h-10 rounded-full bg-transparent border-2 border-black text-black font-semibold text-2xl flex items-center justify-center font-[family-name:var(--font-outfit)] hover:bg-gray-100 transition-colors"
+                className="w-10 h-10 rounded-full bg-transparent border-2 border-black text-black font-semibold text-2xl flex items-center justify-center hover:bg-gray-100 transition-colors"
               >
                 {profileInitial}
               </Link>
             ) : (
               <div
-                className="w-10 h-10 rounded-full bg-transparent border-2 border-black text-black font-semibold text-2xl flex items-center justify-center font-[family-name:var(--font-outfit)]"
+                className="w-10 h-10 rounded-full bg-transparent border-2 border-black text-black font-semibold text-2xl flex items-center justify-center"
                 aria-label={profileInitial}
               >
                 {profileInitial}

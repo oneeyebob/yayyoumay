@@ -183,8 +183,7 @@ export default function ChannelPageClient({ channel, videos, profileName }: Prop
               role="tab"
               aria-selected={true}
               className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium bg-white text-gray-900 shadow-sm"
-              style={{ fontFamily: 'var(--font-outfit)' }}
-            >
+                          >
               Videoer
               {videos.length > 0 && (
                 <span className="text-xs font-normal tabular-nums text-gray-400">
@@ -198,8 +197,7 @@ export default function ChannelPageClient({ channel, videos, profileName }: Prop
               role="tab"
               aria-selected={false}
               className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
-              style={{ fontFamily: 'var(--font-outfit)' }}
-            >
+                          >
               Kanaler
             </Link>
           </div>

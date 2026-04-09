@@ -151,6 +151,7 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
       channel={{ name: channel.name, thumbnailUrl: channel.thumbnail_url }}
       videos={whitelistedVideos}
       profileName={profileName}
+      listId={listIds[0] ?? null}
     />
   )
 }

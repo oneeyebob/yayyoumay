@@ -42,7 +42,7 @@ function KeywordBlacklistSection({ initialKeywords }: { initialKeywords: Keyword
     <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
       <h2 className="font-bold text-gray-900 mb-0.5">Ordfilter</h2>
       <p className="text-xs text-gray-400 mb-4">
-        Indhold med disse ord i titlen skjules automatisk i alle søgeresultater.
+        Indhold med disse ord i titlen vises ikke i Juniors feed.
       </p>
 
       {/* Input row */}

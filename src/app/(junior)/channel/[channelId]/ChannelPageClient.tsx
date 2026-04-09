@@ -44,10 +44,10 @@ export default function ChannelPageClient({ channel, videos, profileName, listId
   const inputId = useId()
   const listboxId = useId()
 
-  function selectVideo(video: ActiveVideo) {
+  function selectVideo(video: ActiveVideo, { autoLoad = false } = {}) {
     if (video.id !== activeVideo?.id) {
       if (activeVideo) setHistory((prev) => [...prev.slice(-4), activeVideo])
-      setIframeLoaded(null)
+      setIframeLoaded(autoLoad ? video.id : null)
       setBlockConfirm(false)
     }
     setActiveVideo(video)
@@ -275,28 +275,23 @@ export default function ChannelPageClient({ channel, videos, profileName, listId
 
           {/* Tabs */}
           <div className="flex-1 flex gap-1 bg-gray-100 rounded-xl p-1" role="tablist" aria-label="Indholdstype">
-            {/* Videoer — always active on a channel page */}
+            {/* Videoer — navigates back to the junior feed's Videoer tab */}
+            <Link
+              href="/?tab=videoer"
+              role="tab"
+              aria-selected={false}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Videoer
+            </Link>
+            {/* Kanaler — always active on a channel page */}
             <div
               role="tab"
               aria-selected={true}
               className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium bg-white text-gray-900 shadow-sm"
-                          >
-              Videoer
-              {videos.length > 0 && (
-                <span className="text-xs font-normal tabular-nums text-gray-400">
-                  {videos.length}
-                </span>
-              )}
-            </div>
-            {/* Kanaler — navigates back to the junior feed's Kanaler tab */}
-            <Link
-              href="/?tab=kanaler"
-              role="tab"
-              aria-selected={false}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
-                          >
+            >
               Kanaler
-            </Link>
+            </div>
           </div>
 
         </div>
@@ -412,7 +407,7 @@ export default function ChannelPageClient({ channel, videos, profileName, listId
                 <button
                   onClick={() => {
                     localStorage.setItem('lastPlayedVideoId', video.id)
-                    selectVideo({ id: video.id, title: video.title })
+                    selectVideo({ id: video.id, title: video.title }, { autoLoad: true })
                   }}
                   className={[
                     'block w-full text-left rounded-xl overflow-hidden bg-white border shadow-sm hover:shadow-md transition-shadow group',
@@ -454,8 +449,8 @@ export default function ChannelPageClient({ channel, videos, profileName, listId
                   </div>
 
                   {/* Meta */}
-                  <div className="px-1.5 pt-1.5 pb-2 space-y-0.5">
-                    <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-snug">
+                  <div className="px-1.5 pt-1.5 pb-2 h-[4.5rem] flex flex-col justify-between overflow-hidden">
+                    <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-tight">
                       {video.title}
                     </p>
                   </div>

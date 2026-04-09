@@ -29,10 +29,10 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
   const [history, setHistory] = useState<ActiveVideo[]>([])
   const [blockConfirm, setBlockConfirm] = useState(false)
 
-  function selectVideo(video: ActiveVideo) {
+  function selectVideo(video: ActiveVideo, { autoLoad = false } = {}) {
     if (video.id !== activeVideo?.id) {
       if (activeVideo) setHistory((prev) => [...prev.slice(-4), activeVideo])
-      setIframeLoaded(null)
+      setIframeLoaded(autoLoad ? video.id : null)
       setBlockConfirm(false)
     }
     setActiveVideo(video)
@@ -212,7 +212,7 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
       <JuniorFeed
         videos={videos}
         channels={channels}
-        onVideoSelect={(v) => selectVideo(v)}
+        onVideoSelect={(v) => selectVideo(v, { autoLoad: true })}
         activeVideoId={activeVideo?.id ?? null}
         initialTab={initialTab}
       />

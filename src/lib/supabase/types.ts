@@ -35,6 +35,29 @@ export type Database = {
         }
         Relationships: []
       }
+      channel_cache: {
+        Row: {
+          channel_id: string
+          last_fetched_at: string
+        }
+        Insert: {
+          channel_id: string
+          last_fetched_at?: string
+        }
+        Update: {
+          channel_id?: string
+          last_fetched_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_cache_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: true
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       channels: {
         Row: {
           id: string

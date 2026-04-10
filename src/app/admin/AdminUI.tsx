@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { addFromUrl } from '@/app/curator/actions'
 import {
   createAdminList,
   deleteAdminList,
@@ -32,73 +31,6 @@ interface Props {
   adminUsers: AdminUser[]
   isSuperAdmin: boolean
   currentUserId: string
-}
-
-// ── Tilføj URL ────────────────────────────────────────────────────────────────
-
-function AddUrlSection({ lists }: { lists: AdminList[] }) {
-  const [listId, setListId] = useState(lists[0]?.id ?? '')
-  const [url, setUrl] = useState('')
-  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null)
-  const [, startTransition] = useTransition()
-  const [isPending, setIsPending] = useState(false)
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    const trimmed = url.trim()
-    if (!trimmed || !listId) return
-    setResult(null)
-    setIsPending(true)
-    startTransition(async () => {
-      const res = await addFromUrl(trimmed, listId)
-      setIsPending(false)
-      if (res.error) {
-        setResult({ ok: false, message: res.error })
-      } else {
-        setResult({ ok: true, message: `Tilføjet: ${res.title ?? ''}`.trim() })
-        setUrl('')
-        window.location.reload()
-      }
-    })
-  }
-
-  return (
-    <section className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-      <h2 className="text-base font-semibold text-gray-900">Tilføj YouTube URL</h2>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <select
-          value={listId}
-          onChange={(e) => setListId(e.target.value)}
-          className="w-full rounded-xl border border-gray-200 bg-white py-2.5 px-4 text-sm text-gray-900 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors"
-        >
-          {lists.map((l) => (
-            <option key={l.id} value={l.id}>{l.name}</option>
-          ))}
-        </select>
-        <div className="flex gap-2">
-          <input
-            type="url"
-            value={url}
-            onChange={(e) => { setUrl(e.target.value); setResult(null) }}
-            placeholder="Indsæt YouTube URL..."
-            className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors"
-          />
-          <button
-            type="submit"
-            disabled={isPending || !url.trim() || !listId}
-            className="shrink-0 rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            {isPending ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden /> : 'Tilføj'}
-          </button>
-        </div>
-        {result && (
-          <p className={`text-xs font-medium ${result.ok ? 'text-green-600' : 'text-red-500'}`}>
-            {result.message}
-          </p>
-        )}
-      </form>
-    </section>
-  )
 }
 
 // ── Bibliotekslister ──────────────────────────────────────────────────────────
@@ -344,7 +276,6 @@ function AdminUsersSection({ adminUsers, currentUserId }: { adminUsers: AdminUse
 export default function AdminUI({ lists, adminUsers, isSuperAdmin, currentUserId }: Props) {
   return (
     <div className="space-y-8">
-      <AddUrlSection lists={lists} />
       <ListsSection lists={lists} />
       {isSuperAdmin && (
         <AdminUsersSection adminUsers={adminUsers} currentUserId={currentUserId} />

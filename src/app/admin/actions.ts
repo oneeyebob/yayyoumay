@@ -35,7 +35,7 @@ export async function createAdminList(
 
   const { data, error } = await admin
     .from('lists')
-    .insert({ profile_id: profile.id, name: name.trim(), is_public: true })
+    .insert({ profile_id: profile.id, name: name.trim(), is_public: false })
     .select('id')
     .single()
 

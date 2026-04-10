@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { addFromUrl } from '@/app/curator/actions'
-import { updateListMeta, toggleListPublic, removeItem, addListTag, removeListTag } from './actions'
+import { updateListMeta, toggleListPublic, removeItem, addListTag, removeListTag, createAndAddTag } from './actions'
 
 export interface ListDetail {
   id: string
@@ -256,9 +256,12 @@ function TagsSection({
   allTags: TagRow[]
   activeTagIds: string[]
 }) {
+  const [localTags, setLocalTags] = useState<TagRow[]>(allTags)
   const [active, setActive] = useState<Set<string>>(new Set(activeTagIds))
   const [pending, setPending] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [newLabels, setNewLabels] = useState<Record<string, string>>({})
+  const [creating, setCreating] = useState<string | null>(null)
   const [, startTransition] = useTransition()
 
   function handleToggle(tagId: string) {
@@ -280,21 +283,39 @@ function TagsSection({
     })
   }
 
+  function handleCreate(cat: string) {
+    const label = (newLabels[cat] ?? '').trim()
+    if (!label) return
+    setCreating(cat)
+    setError(null)
+    startTransition(async () => {
+      const res = await createAndAddTag(listId, cat, label)
+      setCreating(null)
+      if (res.error) { setError(res.error); return }
+      if (res.tag) {
+        const newTag: TagRow = { id: res.tag.id, slug: res.tag.slug, category: cat, label_da: res.tag.label_da }
+        setLocalTags((prev) => [...prev, newTag])
+        setActive((prev) => new Set([...prev, res.tag!.id]))
+        setNewLabels((prev) => ({ ...prev, [cat]: '' }))
+      }
+    })
+  }
+
   const byCategory = CATEGORY_ORDER.map((cat) => ({
     cat,
     label: CATEGORY_LABELS[cat] ?? cat,
-    tags: allTags.filter((t) => t.category === cat),
-  })).filter((g) => g.tags.length > 0)
+    tags: localTags.filter((t) => t.category === cat),
+  })).filter((g) => g.tags.length > 0 || CATEGORY_ORDER.includes(g.cat))
 
   return (
     <section className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
       <h2 className="text-base font-semibold text-gray-900">Tags</h2>
       {error && <p className="text-sm text-red-500">{error}</p>}
-      <div className="space-y-4">
+      <div className="space-y-5">
         {byCategory.map(({ cat, label, tags }) => (
           <div key={cat}>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{label}</p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mb-2">
               {tags.map((tag) => {
                 const isActive = active.has(tag.id)
                 const isLoading = pending === tag.id
@@ -316,6 +337,26 @@ function TagsSection({
                   </button>
                 )
               })}
+            </div>
+            {/* Tilføj nyt tag til denne kategori */}
+            <div className="flex gap-2 mt-1">
+              <input
+                type="text"
+                value={newLabels[cat] ?? ''}
+                onChange={(e) => setNewLabels((prev) => ({ ...prev, [cat]: e.target.value }))}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleCreate(cat) } }}
+                placeholder={`Nyt ${label.toLowerCase()} tag...`}
+                className="flex-1 rounded-lg border border-gray-200 bg-gray-50 py-1.5 px-3 text-xs text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-200 transition-colors"
+              />
+              <button
+                onClick={() => handleCreate(cat)}
+                disabled={!newLabels[cat]?.trim() || creating === cat}
+                className="shrink-0 rounded-lg bg-gray-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-700 disabled:opacity-40 transition-colors"
+              >
+                {creating === cat
+                  ? <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden />
+                  : 'Tilføj'}
+              </button>
             </div>
           </div>
         ))}

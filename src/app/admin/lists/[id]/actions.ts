@@ -80,4 +80,39 @@ export async function removeListTag(listId: string, tagId: string): Promise<{ er
   return { error: null }
 }
 
+export async function createAndAddTag(
+  listId: string,
+  category: string,
+  labelDa: string,
+): Promise<{ error: string | null; tag?: { id: string; slug: string; label_da: string } }> {
+  await assertAdmin()
+  const admin = createAdminClient()
+
+  const slug = labelDa
+    .toLowerCase()
+    .trim()
+    .replace(/æ/g, 'ae').replace(/ø/g, 'oe').replace(/å/g, 'aa')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+
+  // Insert into tags
+  const { data: tag, error: tagError } = await admin
+    .from('tags')
+    .insert({ slug, category, label_da: labelDa.trim(), label_en: labelDa.trim() })
+    .select('id, slug, label_da')
+    .single()
+
+  if (tagError || !tag) return { error: tagError?.message ?? 'Kunne ikke oprette tag.' }
+
+  // Link to list
+  const { error: linkError } = await (admin
+    .from('list_tags' as never)
+    .insert({ list_id: listId, tag_id: tag.id } as never) as unknown as Promise<{ error: { message: string } | null }>)
+
+  if (linkError) return { error: linkError.message }
+
+  revalidatePath(`/admin/lists/${listId}`)
+  return { error: null, tag: { id: tag.id, slug: tag.slug, label_da: tag.label_da ?? labelDa } }
+}
+
 export type { ListTagRow }

@@ -29,14 +29,14 @@ export async function middleware(request: NextRequest) {
 
   // Refresh session — must be called before any redirect logic
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
 
   // / — redirect to /login if no session; authenticated users stay on /
   if (pathname === '/') {
-    if (!session) {
+    if (!user) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
   }
@@ -44,7 +44,7 @@ export async function middleware(request: NextRequest) {
   // /curator/* — requires an active session
   // PIN gate is handled at the page level via the curator_unlocked cookie
   if (pathname.startsWith('/curator')) {
-    if (!session) {
+    if (!user) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
   }
@@ -59,11 +59,11 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/login') ||
     pathname.startsWith('/register')
 
-  if (session && !isSetupRoute) {
+  if (user && !isSetupRoute) {
     const { count } = await supabase
       .from('profiles')
       .select('id', { count: 'exact', head: true })
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
 
     if (count === 0) {
       return NextResponse.redirect(new URL('/curator/profiles', request.url))

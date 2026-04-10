@@ -2,6 +2,7 @@
 
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function selectProfile(profileId: string): Promise<void> {
   const cookieStore = await cookies()
@@ -34,11 +35,15 @@ export async function createProfile(
 
   if (profileError || !profile) return { error: 'Kunne ikke oprette profil.' }
 
-  const { error: listError } = await supabase
+  const adminClient = createAdminClient()
+  const { error: listError } = await adminClient
     .from('lists')
     .insert({ profile_id: profile.id, name: name.trim() })
 
-  if (listError) return { error: 'Profil oprettet, men liste fejlede.' }
+  if (listError) {
+    console.error('[createProfile] liste-oprettelse fejlede:', listError)
+    return { error: 'Profil oprettet, men liste fejlede.' }
+  }
 
   return { error: null }
 }

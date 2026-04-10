@@ -289,12 +289,13 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
             </div>
           )}
           <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full">
-            {visibleVideos.map((video) => (
+            {visibleVideos.map((video, i) => (
               <VideoCard
                 key={video.ytVideoId}
                 video={video}
                 onSelect={handleVideoSelect}
                 isActive={activeVideoId === video.ytVideoId}
+                priority={i < 4}
               />
             ))}
           </ul>
@@ -324,8 +325,8 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
         </div>
       ) : (
         <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-4xl mx-auto w-full">
-          {visibleChannels.map((ch) => (
-            <ChannelCard key={ch.ytChannelId} channel={ch} />
+          {visibleChannels.map((ch, i) => (
+            <ChannelCard key={ch.ytChannelId} channel={ch} priority={i < 4} />
           ))}
         </ul>
       )}
@@ -339,10 +340,12 @@ function VideoCard({
   video,
   onSelect,
   isActive,
+  priority = false,
 }: {
   video: FeedVideo
   onSelect: (v: { id: string; title: string }) => void  // always required — caller provides fallback
   isActive?: boolean
+  priority?: boolean
 }) {
   const cardClass = [
     'block w-full text-left rounded-xl overflow-hidden bg-white border shadow-sm hover:shadow-md transition-shadow group',
@@ -361,6 +364,7 @@ function VideoCard({
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover"
             unoptimized
+            priority={priority}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-2xl">
@@ -416,7 +420,7 @@ function VideoCard({
 
 // ── Channel card ──────────────────────────────────────────────────────────────
 
-function ChannelCard({ channel }: { channel: FeedChannel }) {
+function ChannelCard({ channel, priority = false }: { channel: FeedChannel; priority?: boolean }) {
   return (
     <li>
       <Link
@@ -433,6 +437,7 @@ function ChannelCard({ channel }: { channel: FeedChannel }) {
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="object-cover"
               unoptimized
+              priority={priority}
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-2xl">

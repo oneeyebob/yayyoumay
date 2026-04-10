@@ -263,6 +263,7 @@ export default function ChannelPageClient({ channel, videos, profileName, listId
                   sizes="32px"
                   className="object-cover"
                   unoptimized
+                  priority
                 />
               </div>
             ) : (
@@ -403,7 +404,7 @@ export default function ChannelPageClient({ channel, videos, profileName, listId
           </div>
         ) : (
           <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-4xl mx-auto w-full">
-            {visibleVideos.map((video) => (
+            {visibleVideos.map((video, i) => (
               <li key={video.id}>
                 <button
                   onClick={() => {
@@ -427,6 +428,7 @@ export default function ChannelPageClient({ channel, videos, profileName, listId
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         className="object-cover"
                         unoptimized
+                        priority={i < 4}
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-2xl">

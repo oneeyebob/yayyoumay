@@ -53,3 +53,31 @@ export async function removeItem(itemId: string, listId: string): Promise<{ erro
   revalidatePath(`/admin/lists/${listId}`)
   return { error: null }
 }
+
+type ListTagRow = { id: string; list_id: string; tag_id: string }
+
+export async function addListTag(listId: string, tagId: string): Promise<{ error: string | null }> {
+  await assertAdmin()
+  const admin = createAdminClient()
+  const { error } = await (admin
+    .from('list_tags' as never)
+    .insert({ list_id: listId, tag_id: tagId } as never) as unknown as Promise<{ error: { message: string } | null }>)
+  if (error) return { error: error.message }
+  revalidatePath(`/admin/lists/${listId}`)
+  return { error: null }
+}
+
+export async function removeListTag(listId: string, tagId: string): Promise<{ error: string | null }> {
+  await assertAdmin()
+  const admin = createAdminClient()
+  const { error } = await (admin
+    .from('list_tags' as never)
+    .delete()
+    .eq('list_id' as never, listId)
+    .eq('tag_id' as never, tagId) as unknown as Promise<{ error: { message: string } | null }>)
+  if (error) return { error: error.message }
+  revalidatePath(`/admin/lists/${listId}`)
+  return { error: null }
+}
+
+export type { ListTagRow }

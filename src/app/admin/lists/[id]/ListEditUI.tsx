@@ -2,13 +2,20 @@
 
 import { useState, useTransition } from 'react'
 import { addFromUrl } from '@/app/curator/actions'
-import { updateListMeta, toggleListPublic, removeItem } from './actions'
+import { updateListMeta, toggleListPublic, removeItem, addListTag, removeListTag } from './actions'
 
 export interface ListDetail {
   id: string
   name: string
   description: string | null
   is_public: boolean
+}
+
+export interface TagRow {
+  id: string
+  slug: string
+  category: string | null
+  label_da: string | null
 }
 
 export interface ItemRow {
@@ -22,6 +29,8 @@ export interface ItemRow {
 interface Props {
   list: ListDetail
   items: ItemRow[]
+  allTags: TagRow[]
+  activeTagIds: string[]
 }
 
 // ── Meta editor ───────────────────────────────────────────────────────────────
@@ -227,12 +236,101 @@ function ItemsSection({ listId, items }: { listId: string; items: ItemRow[] }) {
   )
 }
 
+// ── Tags ─────────────────────────────────────────────────────────────────────
+
+const CATEGORY_LABELS: Record<string, string> = {
+  alderstrin: 'Alderstrin',
+  sprog: 'Sprog',
+  emne: 'Emne',
+  tone: 'Tone',
+}
+
+const CATEGORY_ORDER = ['alderstrin', 'sprog', 'emne', 'tone']
+
+function TagsSection({
+  listId,
+  allTags,
+  activeTagIds,
+}: {
+  listId: string
+  allTags: TagRow[]
+  activeTagIds: string[]
+}) {
+  const [active, setActive] = useState<Set<string>>(new Set(activeTagIds))
+  const [pending, setPending] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [, startTransition] = useTransition()
+
+  function handleToggle(tagId: string) {
+    if (pending) return
+    setPending(tagId)
+    setError(null)
+    const isActive = active.has(tagId)
+    startTransition(async () => {
+      const res = isActive
+        ? await removeListTag(listId, tagId)
+        : await addListTag(listId, tagId)
+      setPending(null)
+      if (res.error) { setError(res.error); return }
+      setActive((prev) => {
+        const next = new Set(prev)
+        isActive ? next.delete(tagId) : next.add(tagId)
+        return next
+      })
+    })
+  }
+
+  const byCategory = CATEGORY_ORDER.map((cat) => ({
+    cat,
+    label: CATEGORY_LABELS[cat] ?? cat,
+    tags: allTags.filter((t) => t.category === cat),
+  })).filter((g) => g.tags.length > 0)
+
+  return (
+    <section className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+      <h2 className="text-base font-semibold text-gray-900">Tags</h2>
+      {error && <p className="text-sm text-red-500">{error}</p>}
+      <div className="space-y-4">
+        {byCategory.map(({ cat, label, tags }) => (
+          <div key={cat}>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{label}</p>
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => {
+                const isActive = active.has(tag.id)
+                const isLoading = pending === tag.id
+                return (
+                  <button
+                    key={tag.id}
+                    onClick={() => handleToggle(tag.id)}
+                    disabled={!!pending}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isActive
+                        ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {isLoading && (
+                      <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden />
+                    )}
+                    {tag.label_da ?? tag.slug}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export default function ListEditUI({ list, items }: Props) {
+export default function ListEditUI({ list, items, allTags, activeTagIds }: Props) {
   return (
     <div className="space-y-6">
       <MetaSection list={list} />
+      <TagsSection listId={list.id} allTags={allTags} activeTagIds={activeTagIds} />
       <AddUrlSection listId={list.id} onAdded={() => {}} />
       <ItemsSection listId={list.id} items={items} />
     </div>

@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isAdmin } from '@/lib/admin'
-import ListEditUI, { type ListDetail, type ItemRow } from './ListEditUI'
+import ListEditUI, { type ListDetail, type ItemRow, type TagRow } from './ListEditUI'
 
 export default async function AdminListPage({
   params,
@@ -33,6 +33,26 @@ export default async function AdminListPage({
     description: listRow.description,
     is_public: listRow.is_public,
   }
+
+  // Fetch all tags + active tags for this list (parallel)
+  type RawTag = { id: string; slug: string; category: string | null; label_da: string | null }
+  type RawListTag = { tag_id: string }
+
+  const [{ data: rawTags }, { data: rawListTags }] = await Promise.all([
+    admin.from('tags').select('id, slug, category, label_da').order('category') as unknown as Promise<{ data: RawTag[] | null }>,
+    (admin
+      .from('list_tags' as never)
+      .select('tag_id')
+      .eq('list_id' as never, id) as unknown as Promise<{ data: RawListTag[] | null }>),
+  ])
+
+  const allTags: TagRow[] = (rawTags ?? []).map((t) => ({
+    id: t.id,
+    slug: t.slug,
+    category: t.category,
+    label_da: t.label_da,
+  }))
+  const activeTagIds = (rawListTags ?? []).map((lt) => lt.tag_id)
 
   // Fetch items with joined channel/video data
   const { data: rawItems } = await admin
@@ -82,7 +102,7 @@ export default async function AdminListPage({
           <p className="text-sm text-gray-500 mt-0.5">Rediger biblioteksliste</p>
         </div>
 
-        <ListEditUI list={list} items={items} />
+        <ListEditUI list={list} items={items} allTags={allTags} activeTagIds={activeTagIds} />
       </div>
     </main>
   )

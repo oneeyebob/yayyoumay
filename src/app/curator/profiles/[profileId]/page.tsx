@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import SharedHeader from '@/components/shared/SharedHeader'
 import ProfileDetailUI, { type ProfileData, type ListData, type ItemRow } from './ProfileDetailUI'
 
 export default async function ProfileDetailPage({
@@ -96,8 +97,13 @@ export default async function ProfileDetailPage({
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <div className="max-w-lg mx-auto px-4 py-8">
-        {/* Back link */}
+      <SharedHeader
+        showAvatar={true}
+        profileInitial={profile.name.charAt(0).toUpperCase()}
+        avatarHref="/curator/profiles"
+        showLockButton={true}
+      />
+      <div className="max-w-4xl mx-auto px-4 py-8">
         <Link
           href="/curator/profiles"
           className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors"

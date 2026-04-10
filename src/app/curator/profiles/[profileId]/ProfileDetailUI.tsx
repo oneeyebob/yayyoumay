@@ -216,7 +216,7 @@ function SettingsSection({ list, profileId, profileName }: { list: ListData; pro
       {/* Description */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Om denne liste <span className="text-gray-400 font-normal">(valgfri)</span>
+          Om denne liste <span className="text-gray-400 font-normal">(valgfri - men giver andre forældre mulighed for at søge på {profileName}s indhold)</span>
         </label>
         <textarea
           rows={5}

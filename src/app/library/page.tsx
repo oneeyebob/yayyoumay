@@ -1,8 +1,11 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import SharedHeader from '@/components/shared/SharedHeader'
 import LibraryUI, { type PublicList } from './LibraryUI'
+
+const ADMIN_USER_ID = 'c0e3d233-4c33-4bd9-98b3-4625a9b731a3'
 
 export default async function LibraryPage() {
   const cookieStore = await cookies()
@@ -24,17 +27,30 @@ export default async function LibraryPage() {
     profileName = activeProfile?.name ?? null
   }
 
+  // Identify admin profile IDs — use admin client to bypass RLS
+  const adminSupabase = createAdminClient()
+  const { data: adminProfiles } = await adminSupabase
+    .from('profiles')
+    .select('id')
+    .eq('user_id', ADMIN_USER_ID)
+
+  const adminProfileIds = new Set(adminProfiles?.map((p) => p.id) ?? [])
+
   // Fetch all public lists
-  const { data: listsRaw } = await supabase
+  const { data: allListsRaw } = await supabase
     .from('lists')
-    .select('id, name, description')
+    .select('id, name, description, profile_id')
     .eq('is_public', true)
     .order('created_at', { ascending: true })
 
+  const allRows = allListsRaw ?? []
+
+  const recommendedRaw = allRows.filter((l) => adminProfileIds.has(l.profile_id))
+  const communityRaw = allRows.filter((l) => !adminProfileIds.has(l.profile_id))
+
   // Count items per list
-  const listRows = listsRaw ?? []
   const counts = await Promise.all(
-    listRows.map((l) =>
+    allRows.map((l) =>
       supabase
         .from('list_items')
         .select('*', { count: 'exact', head: true })
@@ -44,14 +60,19 @@ export default async function LibraryPage() {
   )
   const countMap = new Map(counts.map((c) => [c.id, c.count]))
 
-  const lists: PublicList[] = listRows.map((l) => ({
-    id: l.id,
-    name: l.name,
-    description: l.description,
-    item_count: countMap.get(l.id) ?? 0,
-  }))
+  function toList(rows: typeof allRows): PublicList[] {
+    return rows.map((l) => ({
+      id: l.id,
+      name: l.name,
+      description: l.description,
+      item_count: countMap.get(l.id) ?? 0,
+    }))
+  }
 
-  // Fetch current user's subscriptions
+  const recommendedLists = toList(recommendedRaw)
+  const communityLists = toList(communityRaw)
+
+// Fetch current user's subscriptions
   let subscribedIds: string[] = []
   if (user) {
     const { data: subs } = await supabase
@@ -69,7 +90,11 @@ export default async function LibraryPage() {
         avatarHref="/curator/profiles"
         showLockButton={true}
       />
-      <LibraryUI lists={lists} subscribedIds={subscribedIds} />
+      <LibraryUI
+        recommendedLists={recommendedLists}
+        communityLists={communityLists}
+        subscribedIds={subscribedIds}
+      />
     </>
   )
 }

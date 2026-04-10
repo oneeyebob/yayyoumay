@@ -80,9 +80,8 @@ export default async function AdminPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+        <div className="max-w-4xl mx-auto flex items-center">
           <img src="/yay-logo-compact.svg" alt="YAY!" className="h-10 w-auto" />
-          <span className="text-sm font-semibold text-gray-500">Admin</span>
         </div>
       </header>
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-2">

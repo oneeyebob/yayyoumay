@@ -70,16 +70,9 @@ export default async function AdminListPage({
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Image src="/yay-logo-compact.svg" alt="YAY!" width={40} height={40} className="h-10 w-auto" />
-          <Link
-            href="/admin"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-gray-500 hover:text-gray-800 transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-              <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
-            </svg>
-            Admin
+        <div className="max-w-4xl mx-auto flex items-center">
+          <Link href="/admin">
+            <Image src="/yay-logo-compact.svg" alt="YAY!" width={40} height={40} className="h-10 w-auto" />
           </Link>
         </div>
       </header>

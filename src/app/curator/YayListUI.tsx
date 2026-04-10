@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { removeListItem, blockItemInOwnList } from './actions'
 import { unsubscribeFromList } from '@/app/library/actions'
 
+const PREVIEW = 3
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface ChannelData {
@@ -61,6 +63,28 @@ function resolveVideo(item: YayVideo): VideoData | null {
   const v = item.videos
   if (!v) return null
   return Array.isArray(v) ? (v[0] ?? null) : v
+}
+
+// ── ShowMoreToggle ────────────────────────────────────────────────────────────
+
+function ShowMoreToggle({
+  total,
+  expanded,
+  onToggle,
+}: {
+  total: number
+  expanded: boolean
+  onToggle: () => void
+}) {
+  if (total <= PREVIEW) return null
+  return (
+    <button
+      onClick={onToggle}
+      className="mt-2 text-xs text-gray-400 hover:text-gray-700 transition-colors"
+    >
+      {expanded ? 'Vis færre' : `Vis alle (${total})`}
+    </button>
+  )
 }
 
 // ── ItemRow ───────────────────────────────────────────────────────────────────
@@ -201,6 +225,7 @@ function SubscriptionCard({
   ownListId: string
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [showAll, setShowAll] = useState(false)
   const [channels, setChannels] = useState(list.channels)
   const [videos, setVideos] = useState(list.videos)
   const [unsubscribing, setUnsubscribing] = useState(false)
@@ -213,6 +238,9 @@ function SubscriptionCard({
       window.location.reload()
     })
   }
+
+  const allItems = [...channels.map((c) => ({ kind: 'channel' as const, ...c })), ...videos.map((v) => ({ kind: 'video' as const, ...v }))]
+  const visibleItems = showAll ? allItems : allItems.slice(0, PREVIEW)
 
   return (
     <div className="border border-gray-100 rounded-xl overflow-hidden">
@@ -232,7 +260,7 @@ function SubscriptionCard({
           </svg>
           <span className="text-sm font-semibold text-gray-800">{list.name}</span>
           <span className="text-xs text-gray-400 ml-1">
-            {channels.length + videos.length} emner
+            {allItems.length} emner
           </span>
         </button>
         <button
@@ -246,33 +274,41 @@ function SubscriptionCard({
 
       {/* Expanded content */}
       {expanded && (
-        <div className="px-4 divide-y divide-gray-100">
-          {channels.length === 0 && videos.length === 0 ? (
+        <div className="px-4">
+          {allItems.length === 0 ? (
             <p className="text-sm text-gray-400 italic py-3">Ingen emner i denne samling</p>
           ) : (
             <>
-              {channels.map((ch) => (
-                <BlockRow
-                  key={ch.itemId}
-                  title={ch.name}
-                  thumbnailUrl={ch.thumbnail_url}
-                  channelId={ch.channelId}
-                  videoId={null}
-                  ownListId={ownListId}
-                  onBlocked={() => setChannels((prev) => prev.filter((c) => c.itemId !== ch.itemId))}
-                />
-              ))}
-              {videos.map((v) => (
-                <BlockRow
-                  key={v.itemId}
-                  title={v.title}
-                  thumbnailUrl={v.thumbnail_url}
-                  channelId={null}
-                  videoId={v.videoId}
-                  ownListId={ownListId}
-                  onBlocked={() => setVideos((prev) => prev.filter((vi) => vi.itemId !== v.itemId))}
-                />
-              ))}
+              <div className="divide-y divide-gray-100">
+                {visibleItems.map((item) =>
+                  item.kind === 'channel' ? (
+                    <BlockRow
+                      key={item.itemId}
+                      title={item.name}
+                      thumbnailUrl={item.thumbnail_url}
+                      channelId={item.channelId}
+                      videoId={null}
+                      ownListId={ownListId}
+                      onBlocked={() => setChannels((prev) => prev.filter((c) => c.itemId !== item.itemId))}
+                    />
+                  ) : (
+                    <BlockRow
+                      key={item.itemId}
+                      title={item.title}
+                      thumbnailUrl={item.thumbnail_url}
+                      channelId={null}
+                      videoId={item.videoId}
+                      ownListId={ownListId}
+                      onBlocked={() => setVideos((prev) => prev.filter((v) => v.itemId !== item.itemId))}
+                    />
+                  )
+                )}
+              </div>
+              <ShowMoreToggle
+                total={allItems.length}
+                expanded={showAll}
+                onToggle={() => setShowAll((v) => !v)}
+              />
             </>
           )}
         </div>
@@ -288,81 +324,16 @@ export default function YayListUI({ yayChannels, yayVideos, nayVideos, subscribe
   const [videos, setVideos] = useState(yayVideos)
   const [blocked, setBlocked] = useState(nayVideos)
 
+  const [showAllChannels, setShowAllChannels] = useState(false)
+  const [showAllVideos, setShowAllVideos] = useState(false)
+  const [showAllBlocked, setShowAllBlocked] = useState(false)
+
+  const visibleChannels = showAllChannels ? channels : channels.slice(0, PREVIEW)
+  const visibleVideos = showAllVideos ? videos : videos.slice(0, PREVIEW)
+  const visibleBlocked = showAllBlocked ? blocked : blocked.slice(0, PREVIEW)
+
   return (
     <div className="space-y-5">
-
-      {/* Kanaler */}
-      <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-        <h2 className="font-bold text-gray-900 mb-3">Kanaler</h2>
-        {channels.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">Ingen YAY'd kanaler endnu</p>
-        ) : (
-          <div className="divide-y divide-gray-100">
-            {channels.map((item) => {
-              const ch = resolveChannel(item)
-              if (!ch) return null
-              return (
-                <ItemRow
-                  key={item.id}
-                  id={item.id}
-                  title={ch.name}
-                  thumbnailUrl={ch.thumbnail_url}
-                  onRemoved={(id) => setChannels((prev) => prev.filter((c) => c.id !== id))}
-                />
-              )
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* Videoer */}
-      <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-        <h2 className="font-bold text-gray-900 mb-3">Videoer</h2>
-        {videos.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">Ingen YAY'd videoer endnu</p>
-        ) : (
-          <div className="divide-y divide-gray-100">
-            {videos.map((item) => {
-              const v = resolveVideo(item)
-              if (!v) return null
-              return (
-                <ItemRow
-                  key={item.id}
-                  id={item.id}
-                  title={v.title}
-                  thumbnailUrl={v.thumbnail_url}
-                  onRemoved={(id) => setVideos((prev) => prev.filter((vi) => vi.id !== id))}
-                />
-              )
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* Blokerede videoer */}
-      <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-        <h2 className="font-bold text-gray-900 mb-3">Blokerede videoer</h2>
-        {blocked.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">Ingen blokerede videoer</p>
-        ) : (
-          <div className="divide-y divide-gray-100">
-            {blocked.map((item) => {
-              const v = resolveVideo(item)
-              if (!v) return null
-              return (
-                <ItemRow
-                  key={item.id}
-                  id={item.id}
-                  title={v.title}
-                  thumbnailUrl={v.thumbnail_url}
-                  removeLabel="Fjern blokering"
-                  onRemoved={(id) => setBlocked((prev) => prev.filter((b) => b.id !== id))}
-                />
-              )
-            })}
-          </div>
-        )}
-      </section>
 
       {/* Abonnementer */}
       <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
@@ -382,6 +353,118 @@ export default function YayListUI({ yayChannels, yayVideos, nayVideos, subscribe
               ) : null
             )}
           </div>
+        )}
+      </section>
+
+      {/* Kanaler */}
+      <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <button
+          onClick={() => channels.length > PREVIEW && setShowAllChannels((v) => !v)}
+          className="flex items-center gap-1.5 mb-3 w-full text-left"
+        >
+          <span className="text-xs text-gray-400">{showAllChannels ? '▼' : '▶'}</span>
+          <h2 className="font-bold text-gray-900">Kanaler</h2>
+        </button>
+        {channels.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">Ingen YAY'd kanaler endnu</p>
+        ) : (
+          <>
+            <div className="divide-y divide-gray-100">
+              {visibleChannels.map((item) => {
+                const ch = resolveChannel(item)
+                if (!ch) return null
+                return (
+                  <ItemRow
+                    key={item.id}
+                    id={item.id}
+                    title={ch.name}
+                    thumbnailUrl={ch.thumbnail_url}
+                    onRemoved={(id) => setChannels((prev) => prev.filter((c) => c.id !== id))}
+                  />
+                )
+              })}
+            </div>
+            <ShowMoreToggle
+              total={channels.length}
+              expanded={showAllChannels}
+              onToggle={() => setShowAllChannels((v) => !v)}
+            />
+          </>
+        )}
+      </section>
+
+      {/* Videoer */}
+      <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <button
+          onClick={() => videos.length > PREVIEW && setShowAllVideos((v) => !v)}
+          className="flex items-center gap-1.5 mb-3 w-full text-left"
+        >
+          <span className="text-xs text-gray-400">{showAllVideos ? '▼' : '▶'}</span>
+          <h2 className="font-bold text-gray-900">Videoer</h2>
+        </button>
+        {videos.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">Ingen YAY'd videoer endnu</p>
+        ) : (
+          <>
+            <div className="divide-y divide-gray-100">
+              {visibleVideos.map((item) => {
+                const v = resolveVideo(item)
+                if (!v) return null
+                return (
+                  <ItemRow
+                    key={item.id}
+                    id={item.id}
+                    title={v.title}
+                    thumbnailUrl={v.thumbnail_url}
+                    onRemoved={(id) => setVideos((prev) => prev.filter((vi) => vi.id !== id))}
+                  />
+                )
+              })}
+            </div>
+            <ShowMoreToggle
+              total={videos.length}
+              expanded={showAllVideos}
+              onToggle={() => setShowAllVideos((v) => !v)}
+            />
+          </>
+        )}
+      </section>
+
+      {/* Blokerede videoer */}
+      <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <button
+          onClick={() => blocked.length > PREVIEW && setShowAllBlocked((v) => !v)}
+          className="flex items-center gap-1.5 mb-3 w-full text-left"
+        >
+          <span className="text-xs text-gray-400">{showAllBlocked ? '▼' : '▶'}</span>
+          <h2 className="font-bold text-gray-900">Blokerede videoer</h2>
+        </button>
+        {blocked.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">Ingen blokerede videoer</p>
+        ) : (
+          <>
+            <div className="divide-y divide-gray-100">
+              {visibleBlocked.map((item) => {
+                const v = resolveVideo(item)
+                if (!v) return null
+                return (
+                  <ItemRow
+                    key={item.id}
+                    id={item.id}
+                    title={v.title}
+                    thumbnailUrl={v.thumbnail_url}
+                    removeLabel="Fjern blokering"
+                    onRemoved={(id) => setBlocked((prev) => prev.filter((b) => b.id !== id))}
+                  />
+                )
+              })}
+            </div>
+            <ShowMoreToggle
+              total={blocked.length}
+              expanded={showAllBlocked}
+              onToggle={() => setShowAllBlocked((v) => !v)}
+            />
+          </>
         )}
       </section>
 

@@ -373,6 +373,58 @@ export async function getDecisions(
   return result
 }
 
+// ── Block item from subscribed list into own list ─────────────────────────────
+
+export async function blockItemInOwnList(
+  channelId: string | null,
+  videoId: string | null,
+  ownListId: string,
+): Promise<{ error: string | null }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke logget ind.' }
+
+  // Verify the list belongs to the current user
+  const { data: list } = await supabase
+    .from('lists')
+    .select('id')
+    .eq('id', ownListId)
+    .single()
+  if (!list) return { error: 'Liste ikke fundet.' }
+
+  if (channelId) {
+    const { data: existing } = await supabase
+      .from('list_items')
+      .select('id')
+      .eq('list_id', ownListId)
+      .eq('channel_id', channelId)
+      .is('video_id', null)
+      .single()
+
+    if (existing) {
+      await supabase.from('list_items').update({ status: 'nay' }).eq('id', existing.id)
+    } else {
+      await supabase.from('list_items').insert({ list_id: ownListId, channel_id: channelId, video_id: null, status: 'nay' })
+    }
+  } else if (videoId) {
+    const { data: existing } = await supabase
+      .from('list_items')
+      .select('id')
+      .eq('list_id', ownListId)
+      .eq('video_id', videoId)
+      .is('channel_id', null)
+      .single()
+
+    if (existing) {
+      await supabase.from('list_items').update({ status: 'nay' }).eq('id', existing.id)
+    } else {
+      await supabase.from('list_items').insert({ list_id: ownListId, video_id: videoId, channel_id: null, status: 'nay' })
+    }
+  }
+
+  return { error: null }
+}
+
 // ── Remove list item ─────────────────────────────────────────────────────────
 
 export async function removeListItem(id: string): Promise<{ error: string | null }> {

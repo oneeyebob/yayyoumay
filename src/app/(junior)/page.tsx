@@ -91,18 +91,25 @@ export default async function JuniorPage({
     )
   }
 
-  // 5. Load this profile's list IDs
-  const { data: lists } = await supabase
-    .from('lists')
-    .select('id')
-    .eq('profile_id', activeProfile.id)
+  // 5. Load this profile's list IDs + subscribed list IDs
+  const [{ data: lists }, { data: subscriptions }] = await Promise.all([
+    supabase
+      .from('lists')
+      .select('id')
+      .eq('profile_id', activeProfile.id),
+    (supabase
+      .from('list_subscriptions' as never)
+      .select('list_id')
+      .eq('subscriber_user_id', user.id) as unknown as Promise<{ data: { list_id: string }[] | null }>),
+  ])
 
   const listIds = lists?.map((l) => l.id) ?? []
+  const allListIds = [...listIds, ...(subscriptions?.map((s) => s.list_id) ?? [])]
 
   let feedVideos: FeedVideo[] = []
   let feedChannels: FeedChannel[] = []
 
-  if (listIds.length > 0) {
+  if (allListIds.length > 0) {
     // 6a. Load all yay'd list items (channels + videos)
     const { data: rawYayItems } = await supabase
       .from('list_items')
@@ -113,7 +120,7 @@ export default async function JuniorPage({
         channel:channels(id, yt_channel_id, name, thumbnail_url),
         video:videos(id, yt_video_id, title, thumbnail_url, channel:channels(name))
       `)
-      .in('list_id', listIds)
+      .in('list_id', allListIds)
       .eq('status', 'yay')
       .order('created_at', { ascending: false })
 
@@ -123,7 +130,7 @@ export default async function JuniorPage({
     const { data: rawNayVideos } = await supabase
       .from('list_items')
       .select('video:videos(yt_video_id)')
-      .in('list_id', listIds)
+      .in('list_id', allListIds)
       .eq('status', 'nay')
       .not('video_id', 'is', null)
 

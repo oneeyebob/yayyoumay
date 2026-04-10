@@ -119,6 +119,16 @@ export default async function CuratorPage() {
         {/* Paste URL */}
         {listId && <PasteUrlUI listId={listId} />}
 
+        {/* Library link */}
+        <div>
+          <Link
+            href="/library"
+            className="text-sm text-gray-500 hover:text-gray-800 underline underline-offset-2 transition-colors"
+          >
+            Gå til Bibliotek
+          </Link>
+        </div>
+
         <hr className="border-t border-gray-200" />
 
         {/* Settings: keyword blacklist + ads info */}

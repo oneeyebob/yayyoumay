@@ -20,7 +20,7 @@ export default async function ListDetailPage({
   // Load list
   const { data: list } = await supabase
     .from('lists')
-    .select('id, name, description, lang_filter, profile_id')
+    .select('id, name, description, lang_filter, profile_id, is_public')
     .eq('id', listId)
     .single()
 
@@ -78,6 +78,7 @@ export default async function ListDetailPage({
     name: list.name,
     description: list.description,
     lang_filter: list.lang_filter,
+    is_public: list.is_public,
   }
 
   return (

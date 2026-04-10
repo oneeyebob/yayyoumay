@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { updateList } from '../actions'
-import { removeListItem } from './actions'
+import { removeListItem, toggleListPublic } from './actions'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -11,6 +11,7 @@ export interface ListDetail {
   name: string
   description: string | null
   lang_filter: string | null
+  is_public: boolean
 }
 
 export interface ListItemRow {
@@ -20,6 +21,68 @@ export interface ListItemRow {
   title: string
   thumbnail: string | null
   ytId: string
+}
+
+// ── PublicToggle ──────────────────────────────────────────────────────────────
+
+function PublicToggle({ listId, initialIsPublic }: { listId: string; initialIsPublic: boolean }) {
+  const [isPublic, setIsPublic] = useState(initialIsPublic)
+  const [pending, setPending] = useState(false)
+  const [justEnabled, setJustEnabled] = useState(false)
+
+  async function handleToggle() {
+    const next = !isPublic
+    setPending(true)
+    const { error } = await toggleListPublic(listId, next)
+    setPending(false)
+    if (!error) {
+      setIsPublic(next)
+      if (next) {
+        setJustEnabled(true)
+        setTimeout(() => setJustEnabled(false), 4000)
+      } else {
+        setJustEnabled(false)
+      }
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="block text-sm font-medium text-gray-700">Del med biblioteket</label>
+      <button
+        type="button"
+        onClick={handleToggle}
+        disabled={pending}
+        className={[
+          'flex items-center gap-3 w-fit rounded-xl px-4 py-2.5 text-sm font-medium border transition-colors disabled:opacity-50',
+          isPublic
+            ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
+            : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100',
+        ].join(' ')}
+      >
+        {/* Toggle pill */}
+        <span
+          className={[
+            'relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200',
+            isPublic ? 'bg-indigo-600' : 'bg-gray-300',
+          ].join(' ')}
+        >
+          <span
+            className={[
+              'inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform duration-200',
+              isPublic ? 'translate-x-4' : 'translate-x-0',
+            ].join(' ')}
+          />
+        </span>
+        {isPublic ? 'Delt i Biblioteket' : 'Privat'}
+      </button>
+      {justEnabled && (
+        <p className="text-sm text-indigo-600">
+          Din liste vil nu være synlig i Biblioteket for andre forældre
+        </p>
+      )}
+    </div>
+  )
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -130,6 +193,9 @@ function SettingsSection({ list }: { list: ListDetail }) {
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           />
         </div>
+
+        {/* Public toggle — outside the save form, manages its own state */}
+        <PublicToggle listId={list.id} initialIsPublic={list.is_public} />
 
         {errorMsg && (
           <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">

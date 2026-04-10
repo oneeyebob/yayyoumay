@@ -5,17 +5,23 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function updateListSettings(params: {
   listId: string
-  langFilter: string   // comma-separated, e.g. "dansk,engelsk"
-  ageFilter: string    // comma-separated, e.g. "4-6,7-9"
+  langFilter: string
+  ageFilter: string
   profileId: string
+  description?: string
+  isPublic?: boolean
+  listName?: string
 }): Promise<{ error: string | null }> {
   const supabase = await createClient()
 
   const { error } = await supabase
     .from('lists')
     .update({
-      lang_filter: params.langFilter || null,
-      age_filter: params.ageFilter || null,
+      ...(params.langFilter !== '' ? { lang_filter: params.langFilter || null } : {}),
+      ...(params.ageFilter !== '' ? { age_filter: params.ageFilter || null } : {}),
+      ...(params.description !== undefined ? { description: params.description || null } : {}),
+      ...(params.isPublic !== undefined ? { is_public: params.isPublic } : {}),
+      ...(params.listName !== undefined ? { name: params.listName } : {}),
     })
     .eq('id', params.listId)
 

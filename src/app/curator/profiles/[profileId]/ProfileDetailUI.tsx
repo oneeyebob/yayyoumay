@@ -14,8 +14,9 @@ export interface ProfileData {
 
 export interface ListData {
   id: string
-  lang_filter: string | null
-  age_filter: string | null
+  name: string
+  description: string | null
+  is_public: boolean
 }
 
 export interface ItemRow {
@@ -48,18 +49,6 @@ function normaliseColor(c: string): string {
   return PRESET_COLORS.includes(c) ? c : PRESET_COLORS[0]
 }
 
-const LANGUAGES = [
-  { value: 'dansk',   label: 'Dansk' },
-  { value: 'engelsk', label: 'Engelsk' },
-  { value: 'norsk',   label: 'Norsk' },
-  { value: 'svensk',  label: 'Svensk' },
-]
-
-const AGE_GROUPS = [
-  { value: '4-6',   label: '4–6 år' },
-  { value: '7-9',   label: '7–9 år' },
-  { value: '10-12', label: '10–12 år' },
-]
 
 // ── Avatar ────────────────────────────────────────────────────────────────────
 
@@ -159,18 +148,30 @@ function ProfileHeader({ profile }: { profile: ProfileData }) {
 
 // ── Indstillinger ─────────────────────────────────────────────────────────────
 
-function SettingsSection({ list, profileId }: { list: ListData; profileId: string }) {
-  const [langFilter, setLangFilter] = useState<string[]>(
-    list.lang_filter ? list.lang_filter.split(',').filter(Boolean) : []
-  )
-  const [ageFilter, setAgeFilter] = useState<string[]>(
-    list.age_filter ? list.age_filter.split(',').filter(Boolean) : []
-  )
+function SettingsSection({ list, profileId, profileName }: { list: ListData; profileId: string; profileName: string }) {
+  const defaultName = `${profileName}s liste`
+  const prefix = `${profileName}s `
+  const initialSuffix = list.name !== defaultName && list.name.startsWith(prefix)
+    ? list.name.slice(prefix.length)
+    : ''
+
+  const [suffix, setSuffix] = useState(initialSuffix)
+  const [description, setDescription] = useState(list.description ?? '')
+  const [isPublic, setIsPublic] = useState(list.is_public)
+  const computedName = suffix.trim() ? `${profileName}s ${suffix.trim()}` : defaultName
+  const [justEnabled, setJustEnabled] = useState(false)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  function toggle<T extends string>(arr: T[], val: T): T[] {
-    return arr.includes(val) ? arr.filter((v) => v !== val) : [...arr, val]
+  function handleTogglePublic() {
+    const next = !isPublic
+    setIsPublic(next)
+    if (next) {
+      setJustEnabled(true)
+    } else {
+      setJustEnabled(false)
+    }
+    setSaveState('idle')
   }
 
   async function handleSave() {
@@ -178,57 +179,83 @@ function SettingsSection({ list, profileId }: { list: ListData; profileId: strin
     setErrorMsg(null)
     const { error } = await updateListSettings({
       listId: list.id,
-      langFilter: langFilter.join(','),
-      ageFilter: ageFilter.join(','),
+      langFilter: '',
+      ageFilter: '',
       profileId,
+      description,
+      isPublic,
+      listName: computedName,
     })
     if (error) { setErrorMsg(error); setSaveState('error'); return }
     setSaveState('saved')
     setTimeout(() => setSaveState('idle'), 2000)
   }
 
-  const pillBase = 'rounded-full px-3 py-1 text-sm font-medium border transition-colors'
-  const pillOn = 'bg-blue-600 border-blue-600 text-white'
-  const pillOff = 'bg-white border-gray-300 text-gray-600 hover:border-blue-400'
-
   return (
     <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-5">
       <h2 className="font-bold text-gray-900 mb-4">Indstillinger</h2>
 
-      {/* Language filter */}
+      {/* List name */}
       <div className="mb-4">
-        <p className="text-sm font-medium text-gray-700 mb-2">Sprogfilter</p>
-        <div className="flex flex-wrap gap-2">
-          {LANGUAGES.map((l) => (
-            <button
-              key={l.value}
-              type="button"
-              onClick={() => { setLangFilter(toggle(langFilter, l.value)); setSaveState('idle') }}
-              className={`${pillBase} ${langFilter.includes(l.value) ? pillOn : pillOff}`}
-            >
-              {l.label}
-            </button>
-          ))}
+        <label className="block text-sm font-medium text-gray-700 mb-1">Listens navn</label>
+        <div className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-400">
+          <span className="shrink-0 text-gray-500">{profileName}s</span>
+          <input
+            type="text"
+            value={suffix}
+            onChange={(e) => { setSuffix(e.target.value); setSaveState('idle') }}
+            placeholder="ultimative liste om LEGO"
+            className="flex-1 min-w-0 focus:outline-none bg-transparent"
+          />
         </div>
-        <p className="text-xs text-gray-400 mt-1.5">Ingen valgt = alt indhold vises</p>
+        <p className="text-xs text-gray-400 mt-1">
+          f.eks. &ldquo;{profileName}s ultimative liste om LEGO&rdquo; — tom = &ldquo;{defaultName}&rdquo;
+        </p>
       </div>
 
-      {/* Age group */}
+      {/* Description */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Om denne liste <span className="text-gray-400 font-normal">(valgfri)</span>
+        </label>
+        <textarea
+          rows={5}
+          value={description}
+          onChange={(e) => { setDescription(e.target.value); setSaveState('idle') }}
+          placeholder="Denne liste handler om de bedste LEGO byggere i verden, og så er der også nogle videoer jeg selv har valgt til..."
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+        />
+      </div>
+
+      {/* Public toggle */}
       <div className="mb-5">
-        <p className="text-sm font-medium text-gray-700 mb-2">Aldersgruppe</p>
-        <div className="flex flex-wrap gap-2">
-          {AGE_GROUPS.map((g) => (
-            <button
-              key={g.value}
-              type="button"
-              onClick={() => { setAgeFilter(toggle(ageFilter, g.value)); setSaveState('idle') }}
-              className={`${pillBase} ${ageFilter.includes(g.value) ? pillOn : pillOff}`}
-            >
-              {g.label}
-            </button>
-          ))}
-        </div>
-        <p className="text-xs text-gray-400 mt-1.5">Ingen valgt = ingen aldersfiltrering</p>
+        <p className="text-sm font-medium text-gray-700 mb-2">Del med biblioteket</p>
+        <button
+          type="button"
+          onClick={handleTogglePublic}
+          className={[
+            'flex items-center gap-3 w-fit rounded-xl px-4 py-2.5 text-sm font-medium border transition-colors',
+            isPublic
+              ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
+              : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100',
+          ].join(' ')}
+        >
+          <span className={[
+            'relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200',
+            isPublic ? 'bg-indigo-600' : 'bg-gray-300',
+          ].join(' ')}>
+            <span className={[
+              'inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform duration-200',
+              isPublic ? 'translate-x-4' : 'translate-x-0',
+            ].join(' ')} />
+          </span>
+          {isPublic ? 'Delt i Biblioteket' : 'Privat'}
+        </button>
+        {justEnabled && (
+          <p className="text-sm text-indigo-600 mt-2">
+            Din liste vil nu være synlig i Biblioteket for andre forældre
+          </p>
+        )}
       </div>
 
       {errorMsg && (
@@ -402,7 +429,7 @@ export default function ProfileDetailUI({
       <ProfileHeader profile={profile} />
       {list ? (
         <>
-          <SettingsSection list={list} profileId={profile.id} />
+          <SettingsSection list={list} profileId={profile.id} profileName={profile.name} />
           <ContentSection profileId={profile.id} initialItems={items} />
         </>
       ) : (

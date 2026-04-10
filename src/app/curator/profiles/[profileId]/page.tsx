@@ -32,7 +32,7 @@ export default async function ProfileDetailPage({
   // auto-list logic was added.
   let { data: listRow } = await supabase
     .from('lists')
-    .select('id, lang_filter, age_filter')
+    .select('id, name, description, is_public')
     .eq('profile_id', profileId)
     .order('created_at', { ascending: true })
     .limit(1)
@@ -42,7 +42,7 @@ export default async function ProfileDetailPage({
     const { data: created } = await supabase
       .from('lists')
       .insert({ profile_id: profileId, name: profile.name })
-      .select('id, lang_filter, age_filter')
+      .select('id, name, description, is_public')
       .single()
     listRow = created
   }
@@ -91,7 +91,7 @@ export default async function ProfileDetailPage({
   }
 
   const listData: ListData | null = listRow
-    ? { id: listRow.id, lang_filter: listRow.lang_filter, age_filter: listRow.age_filter }
+    ? { id: listRow.id, name: listRow.name, description: listRow.description, is_public: listRow.is_public }
     : null
 
   return (

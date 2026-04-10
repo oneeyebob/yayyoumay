@@ -159,7 +159,7 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
               <button
                 onClick={goBack}
                 aria-label="Tilbage"
-                className="absolute bottom-2 left-2 bg-black/50 text-white px-3 py-1 rounded-lg text-sm hover:bg-black/70 transition-colors"
+                className="absolute bottom-2 left-2 z-[60] bg-black/50 text-white px-3 py-1 rounded-lg text-sm hover:bg-black/70 transition-colors"
               >
                 ←
               </button>
@@ -170,7 +170,7 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
               <button
                 onClick={() => setBlockConfirm(true)}
                 aria-label="Bloker video"
-                className="absolute bottom-2 right-2 bg-black/50 text-white px-3 py-1 rounded-lg text-sm hover:bg-black/70 transition-colors"
+                className="absolute bottom-2 right-2 z-[60] bg-black/50 text-white px-3 py-1 rounded-lg text-sm hover:bg-black/70 transition-colors"
               >
                 🚫
               </button>

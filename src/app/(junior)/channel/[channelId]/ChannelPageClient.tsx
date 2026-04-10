@@ -204,7 +204,7 @@ export default function ChannelPageClient({ channel, videos, profileName, listId
                 <button
                   onClick={goBack}
                   aria-label="Tilbage"
-                  className="absolute bottom-2 left-2 bg-black/50 text-white px-3 py-1 rounded-lg text-sm hover:bg-black/70 transition-colors"
+                  className="absolute bottom-2 left-2 z-[60] bg-black/50 text-white px-3 py-1 rounded-lg text-sm hover:bg-black/70 transition-colors"
                 >
                   ←
                 </button>
@@ -215,7 +215,7 @@ export default function ChannelPageClient({ channel, videos, profileName, listId
                 <button
                   onClick={() => setBlockConfirm(true)}
                   aria-label="Bloker video"
-                  className="absolute bottom-2 right-2 bg-black/50 text-white px-3 py-1 rounded-lg text-sm hover:bg-black/70 transition-colors"
+                  className="absolute bottom-2 right-2 z-[60] bg-black/50 text-white px-3 py-1 rounded-lg text-sm hover:bg-black/70 transition-colors"
                 >
                   🚫
                 </button>
@@ -284,14 +284,15 @@ export default function ChannelPageClient({ channel, videos, profileName, listId
             >
               Videoer
             </Link>
-            {/* Kanaler — always active on a channel page */}
-            <div
+            {/* Kanaler — navigates back to the junior feed's Kanaler tab */}
+            <Link
+              href="/?tab=kanaler"
               role="tab"
               aria-selected={true}
               className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium bg-white text-gray-900 shadow-sm"
             >
               Kanaler
-            </div>
+            </Link>
           </div>
 
         </div>

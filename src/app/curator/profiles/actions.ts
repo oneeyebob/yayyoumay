@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 async function getCurrentUserId(): Promise<string | null> {
   const supabase = await createClient()
@@ -26,13 +27,23 @@ export async function createProfile(params: {
 
   const firstProfile = count === 0
 
-  const { error } = await supabase.from('profiles').insert({
+  const { data: profile, error } = await supabase.from('profiles').insert({
     user_id: userId,
     name: params.name.trim(),
     avatar_color: params.avatarColor,
-  })
+  }).select('id').single()
 
-  if (error) return { error: 'Kunne ikke oprette profil.', firstProfile: false }
+  if (error || !profile) return { error: 'Kunne ikke oprette profil.', firstProfile: false }
+
+  const adminClient = createAdminClient()
+  const { error: listError } = await adminClient
+    .from('lists')
+    .insert({ profile_id: profile.id, name: params.name.trim() })
+
+  if (listError) {
+    console.error('[createProfile] liste-oprettelse fejlede:', listError)
+    return { error: 'Profil oprettet, men liste fejlede.', firstProfile: false }
+  }
 
   revalidatePath('/curator/profiles')
   return { error: null, firstProfile }

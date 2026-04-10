@@ -338,14 +338,7 @@ export default function YayListUI({ yayChannels, yayVideos, nayVideos, subscribe
       {/* Abonnementer */}
       <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
         <h2 className="font-bold text-gray-900 mb-3">Abonnementer</h2>
-        {subscribedLists.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">
-            Du har ingen abonnementer endnu.{' '}
-            <Link href="/library" className="underline hover:text-gray-600 transition-colors">
-              Gå til Biblioteket for at abonnere.
-            </Link>
-          </p>
-        ) : (
+        {subscribedLists.length > 0 && (
           <div className="space-y-2">
             {subscribedLists.map((list) =>
               ownListId ? (
@@ -354,6 +347,10 @@ export default function YayListUI({ yayChannels, yayVideos, nayVideos, subscribe
             )}
           </div>
         )}
+        <div className="mt-8 mb-8 text-center">
+          <p className="text-base font-semibold text-black mb-3">Se hvad andre deler i Biblioteket</p>
+          <Link href="/library" className="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 transition-colors">Gå til Bibliotek</Link>
+        </div>
       </section>
 
       {/* Kanaler */}

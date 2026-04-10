@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import SharedHeader from '@/components/shared/SharedHeader'
@@ -23,6 +24,11 @@ export default async function CuratorPage() {
   // Show the active profile's name (the profile currently selected in the
   // family picker), so the curator knows whose list they're curating.
   const activeProfileId = cookieStore.get('active_profile_id')?.value ?? null
+
+  // Auto-select first profile if none is active
+  if (user && !activeProfileId) {
+    redirect('/curator/auto-select')
+  }
 
   let profileName: string | null = null
 

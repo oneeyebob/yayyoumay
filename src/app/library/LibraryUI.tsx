@@ -33,10 +33,10 @@ function ListCard({
     <div className="bg-white rounded-2xl shadow-sm p-6 flex items-start justify-between gap-4">
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-gray-900">{list.name}</p>
-        {list.description && (
-          <p className="text-sm text-gray-500 mt-0.5">{list.description}</p>
-        )}
         <p className="text-xs text-gray-400 mt-1">{list.item_count} videoer / kanaler</p>
+        {list.description && (
+          <p className="text-sm text-gray-500 mt-1 line-clamp-2">{list.description}</p>
+        )}
       </div>
       <button
         onClick={onToggle}

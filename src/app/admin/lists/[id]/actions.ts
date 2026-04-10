@@ -54,8 +54,6 @@ export async function removeItem(itemId: string, listId: string): Promise<{ erro
   return { error: null }
 }
 
-type ListTagRow = { id: string; list_id: string; tag_id: string }
-
 export async function addListTag(listId: string, tagId: string): Promise<{ error: string | null }> {
   await assertAdmin()
   const admin = createAdminClient()
@@ -95,10 +93,10 @@ export async function createAndAddTag(
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
 
-  // Insert into tags
+  // Insert into tags (is_seed = false for manually created tags)
   const { data: tag, error: tagError } = await admin
     .from('tags')
-    .insert({ slug, category, label_da: labelDa.trim(), label_en: labelDa.trim() })
+    .insert({ slug, category, label_da: labelDa.trim(), label_en: labelDa.trim(), is_seed: false })
     .select('id, slug, label_da')
     .single()
 
@@ -115,4 +113,12 @@ export async function createAndAddTag(
   return { error: null, tag: { id: tag.id, slug: tag.slug, label_da: tag.label_da ?? labelDa } }
 }
 
-export type { ListTagRow }
+export async function deleteTag(tagId: string): Promise<{ error: string | null }> {
+  await assertAdmin()
+  const admin = createAdminClient()
+  // CASCADE on list_tags will remove related rows automatically
+  const { error } = await admin.from('tags').delete().eq('id', tagId)
+  if (error) return { error: error.message }
+  return { error: null }
+}
+

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { addFromUrl } from '@/app/curator/actions'
-import { updateListMeta, toggleListPublic, removeItem, addListTag, removeListTag, createAndAddTag } from './actions'
+import { updateListMeta, toggleListPublic, removeItem, addListTag, removeListTag, createAndAddTag, deleteTag } from './actions'
 
 export interface ListDetail {
   id: string
@@ -16,6 +16,7 @@ export interface TagRow {
   slug: string
   category: string | null
   label_da: string | null
+  is_seed: boolean
 }
 
 export interface ItemRow {
@@ -283,6 +284,16 @@ function TagsSection({
     })
   }
 
+  function handleDelete(tagId: string) {
+    if (!confirm('Slet dette tag permanent? Det fjernes fra alle lister.')) return
+    startTransition(async () => {
+      const res = await deleteTag(tagId)
+      if (res.error) { setError(res.error); return }
+      setLocalTags((prev) => prev.filter((t) => t.id !== tagId))
+      setActive((prev) => { const next = new Set(prev); next.delete(tagId); return next })
+    })
+  }
+
   function handleCreate(cat: string) {
     const label = (newLabels[cat] ?? '').trim()
     if (!label) return
@@ -293,7 +304,7 @@ function TagsSection({
       setCreating(null)
       if (res.error) { setError(res.error); return }
       if (res.tag) {
-        const newTag: TagRow = { id: res.tag.id, slug: res.tag.slug, category: cat, label_da: res.tag.label_da }
+        const newTag: TagRow = { id: res.tag.id, slug: res.tag.slug, category: cat, label_da: res.tag.label_da, is_seed: false }
         setLocalTags((prev) => [...prev, newTag])
         setActive((prev) => new Set([...prev, res.tag!.id]))
         setNewLabels((prev) => ({ ...prev, [cat]: '' }))
@@ -320,21 +331,36 @@ function TagsSection({
                 const isActive = active.has(tag.id)
                 const isLoading = pending === tag.id
                 return (
-                  <button
-                    key={tag.id}
-                    onClick={() => handleToggle(tag.id)}
-                    disabled={!!pending}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                      isActive
-                        ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {isLoading && (
-                      <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden />
+                  <div key={tag.id} className="inline-flex items-center rounded-full overflow-hidden">
+                    <button
+                      onClick={() => handleToggle(tag.id)}
+                      disabled={!!pending}
+                      className={`inline-flex items-center gap-1.5 pl-3 ${tag.is_seed ? 'pr-3' : 'pr-2'} py-1.5 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                        isActive
+                          ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {isLoading && (
+                        <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden />
+                      )}
+                      {tag.label_da ?? tag.slug}
+                    </button>
+                    {!tag.is_seed && (
+                      <button
+                        onClick={() => handleDelete(tag.id)}
+                        disabled={!!pending}
+                        title="Slet tag permanent"
+                        className={`pr-2 py-1.5 text-sm transition-colors disabled:opacity-50 ${
+                          isActive
+                            ? 'bg-green-100 text-green-600 hover:text-red-600 hover:bg-green-200'
+                            : 'bg-gray-100 text-gray-400 hover:text-red-500 hover:bg-gray-200'
+                        }`}
+                      >
+                        ×
+                      </button>
                     )}
-                    {tag.label_da ?? tag.slug}
-                  </button>
+                  </div>
                 )
               })}
             </div>

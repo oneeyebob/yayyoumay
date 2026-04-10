@@ -35,11 +35,11 @@ export default async function AdminListPage({
   }
 
   // Fetch all tags + active tags for this list (parallel)
-  type RawTag = { id: string; slug: string; category: string | null; label_da: string | null }
+  type RawTag = { id: string; slug: string; category: string | null; label_da: string | null; is_seed: boolean }
   type RawListTag = { tag_id: string }
 
   const [{ data: rawTags }, { data: rawListTags }] = await Promise.all([
-    admin.from('tags').select('id, slug, category, label_da').order('category') as unknown as Promise<{ data: RawTag[] | null }>,
+    admin.from('tags').select('id, slug, category, label_da, is_seed').order('category') as unknown as Promise<{ data: RawTag[] | null }>,
     (admin
       .from('list_tags' as never)
       .select('tag_id')
@@ -51,6 +51,7 @@ export default async function AdminListPage({
     slug: t.slug,
     category: t.category,
     label_da: t.label_da,
+    is_seed: t.is_seed,
   }))
   const activeTagIds = (rawListTags ?? []).map((lt) => lt.tag_id)
 

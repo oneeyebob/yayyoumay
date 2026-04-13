@@ -39,14 +39,17 @@ export type Database = {
         Row: {
           channel_id: string
           last_fetched_at: string
+          next_page_token: string | null
         }
         Insert: {
           channel_id: string
           last_fetched_at?: string
+          next_page_token?: string | null
         }
         Update: {
           channel_id?: string
           last_fetched_at?: string
+          next_page_token?: string | null
         }
         Relationships: [
           {

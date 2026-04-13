@@ -57,7 +57,7 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
 
   const { data: cacheRow } = await supabase
     .from('channel_cache')
-    .select('last_fetched_at')
+    .select('last_fetched_at, next_page_token')
     .eq('channel_id', channel.id)
     .single()
 
@@ -77,6 +77,7 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
         title: v.title,
         thumbnailUrl: v.thumbnail_url,
       }))
+      initialNextPageToken = cacheRow.next_page_token ?? null
     }
   }
 
@@ -105,7 +106,11 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
       }
 
       await supabase.from('channel_cache').upsert(
-        { channel_id: channel.id, last_fetched_at: new Date().toISOString() },
+        {
+          channel_id: channel.id,
+          last_fetched_at: new Date().toISOString(),
+          next_page_token: result.nextPageToken,
+        },
         { onConflict: 'channel_id' }
       )
     } catch {

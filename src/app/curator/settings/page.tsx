@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import SharedHeader from '@/components/shared/SharedHeader'
 import SettingsUI, { type KeywordRow } from './SettingsUI'
 
 export default async function SettingsPage() {
@@ -25,6 +26,7 @@ export default async function SettingsPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <SharedHeader />
       <div className="max-w-lg mx-auto px-4 py-8">
         {/* Back link */}
         <Link

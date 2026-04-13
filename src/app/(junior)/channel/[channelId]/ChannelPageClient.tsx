@@ -26,14 +26,19 @@ export interface ChannelVideo {
 
 interface Props {
   channel: ChannelInfo
+  channelYtId: string
   videos: ChannelVideo[]
+  initialNextPageToken: string | null
   profileName: string
   listId: string | null
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function ChannelPageClient({ channel, videos, profileName, listId }: Props) {
+export default function ChannelPageClient({ channel, channelYtId, videos: initialVideos, initialNextPageToken, profileName, listId }: Props) {
+  const [videos, setVideos] = useState<ChannelVideo[]>(initialVideos)
+  const [nextPageToken, setNextPageToken] = useState<string | null>(initialNextPageToken)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [activeVideo, setActiveVideo] = useState<ActiveVideo | null>(null)
   const [iframeLoaded, setIframeLoaded] = useState<string | null>(null)
   const [history, setHistory] = useState<ActiveVideo[]>([])
@@ -103,6 +108,21 @@ export default function ChannelPageClient({ channel, videos, profileName, listId
     setQuery('')
     setShowSuggestions(false)
     setActiveSuggestion(-1)
+  }
+
+  async function loadMore() {
+    if (!nextPageToken || loadingMore) return
+    setLoadingMore(true)
+    try {
+      const res = await fetch(`/api/channel-videos?channelId=${encodeURIComponent(channelYtId)}&pageToken=${encodeURIComponent(nextPageToken)}`)
+      if (res.ok) {
+        const data = await res.json() as { videos: ChannelVideo[]; nextPageToken: string | null }
+        setVideos((prev) => [...prev, ...data.videos])
+        setNextPageToken(data.nextPageToken)
+      }
+    } finally {
+      setLoadingMore(false)
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -461,6 +481,24 @@ export default function ChannelPageClient({ channel, videos, profileName, listId
               </li>
             ))}
           </ul>
+        )}
+
+        {/* Hent flere */}
+        {!trimmed && nextPageToken && (
+          <div className="flex justify-center pt-2 pb-4">
+            <button
+              onClick={loadMore}
+              disabled={loadingMore}
+              className="rounded-xl border border-gray-200 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loadingMore ? (
+                <span className="inline-flex items-center gap-2">
+                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" aria-hidden />
+                  Henter…
+                </span>
+              ) : 'Hent flere'}
+            </button>
+          </div>
         )}
       </div>
     </main>

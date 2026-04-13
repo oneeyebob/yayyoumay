@@ -53,6 +53,7 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
   let apiVideos: { id: string; title: string; thumbnailUrl: string | null }[] = []
+  let initialNextPageToken: string | null = null
 
   const { data: cacheRow } = await supabase
     .from('channel_cache')
@@ -82,6 +83,7 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
   if (apiVideos.length === 0) {
     try {
       const result = await getChannelVideos(ytChannelId, 30)
+      initialNextPageToken = result.nextPageToken
       apiVideos = result.videos.map((v) => ({
         id: v.id,
         title: v.title,
@@ -149,7 +151,9 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
   return (
     <ChannelPageClient
       channel={{ name: channel.name, thumbnailUrl: channel.thumbnail_url }}
+      channelYtId={ytChannelId}
       videos={whitelistedVideos}
+      initialNextPageToken={initialNextPageToken}
       profileName={profileName}
       listId={listIds[0] ?? null}
     />

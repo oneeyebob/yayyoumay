@@ -330,7 +330,8 @@ interface RawChannelUploadsResponse {
 
 export async function getChannelVideos(
   channelId: string,
-  maxResults = 20
+  maxResults = 20,
+  pageToken?: string
 ): Promise<YouTubeChannelVideosResponse> {
   // Step 1: get the uploads playlist id for this channel
   const channelRaw = await ytFetch<RawChannelUploadsResponse>('channels', {
@@ -345,11 +346,14 @@ export async function getChannelVideos(
   }
 
   // Step 2: list videos from the uploads playlist
-  const playlistRaw = await ytFetch<RawPlaylistItemsResponse>('playlistItems', {
+  const playlistParams: Record<string, string> = {
     part: 'snippet',
     playlistId: uploadsPlaylistId,
     maxResults: String(maxResults),
-  })
+  }
+  if (pageToken) playlistParams.pageToken = pageToken
+
+  const playlistRaw = await ytFetch<RawPlaylistItemsResponse>('playlistItems', playlistParams)
 
   const videoIds = (playlistRaw.items ?? [])
     .map((item) => item.snippet.resourceId.videoId)

@@ -11,6 +11,7 @@ interface Props {
   avatarFormAction?: (formData: FormData) => void | Promise<void>
   avatarHref?: string
   sticky?: boolean
+  className?: string
 }
 
 export default function SharedHeader({
@@ -21,10 +22,12 @@ export default function SharedHeader({
   avatarFormAction,
   avatarHref,
   sticky = true,
+  className,
 }: Props) {
   const headerClass = [
     'bg-white border-b border-gray-100 px-4 py-3',
     sticky ? 'sticky top-0 z-10' : '',
+    className ?? '',
   ].filter(Boolean).join(' ')
 
   return (

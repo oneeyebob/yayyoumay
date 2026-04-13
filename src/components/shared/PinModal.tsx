@@ -117,12 +117,12 @@ export default function PinModal({ isOpen, onSuccess, onClose }: PinModalProps) 
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-white"
         onClick={onClose}
       />
 
       {/* Panel */}
-      <div className="relative z-10 w-full max-w-xs bg-white rounded-2xl shadow-xl p-8">
+      <div className="relative z-10 w-full max-w-xs bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
         <h2 className="text-lg font-bold text-gray-900 mb-1 text-center">Kurator-adgang</h2>
         <p className="text-sm text-gray-500 text-center mb-6">Indtast din 4-cifrede PIN</p>
 

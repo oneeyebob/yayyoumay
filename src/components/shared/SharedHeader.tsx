@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import Link from 'next/link'
 import { lockCurator } from '@/app/curator/actions'
 
@@ -12,6 +13,7 @@ interface Props {
   avatarHref?: string
   sticky?: boolean
   className?: string
+  style?: React.CSSProperties
 }
 
 export default function SharedHeader({
@@ -23,6 +25,7 @@ export default function SharedHeader({
   avatarHref,
   sticky = true,
   className,
+  style,
 }: Props) {
   const headerClass = [
     'bg-white border-b border-gray-100 px-4 py-3',
@@ -31,7 +34,7 @@ export default function SharedHeader({
   ].filter(Boolean).join(' ')
 
   return (
-    <header className={headerClass}>
+    <header className={headerClass} style={style}>
       <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
         <Link href="/" aria-label="Gå til feed">
           <img

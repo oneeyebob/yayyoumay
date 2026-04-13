@@ -26,7 +26,7 @@ export default async function SettingsPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <SharedHeader className="z-60" />
+      <SharedHeader style={{ zIndex: 100 }} />
       <div className="max-w-lg mx-auto px-4 py-8">
         {/* Back link */}
         <Link

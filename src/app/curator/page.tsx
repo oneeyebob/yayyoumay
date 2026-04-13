@@ -13,7 +13,12 @@ export default async function CuratorPage() {
   const unlocked = cookieStore.get('curator_unlocked')?.value === 'true'
 
   if (!unlocked) {
-    return <CuratorGate />
+    return (
+      <>
+        <SharedHeader style={{ zIndex: 100 }} />
+        <CuratorGate />
+      </>
+    )
   }
 
   const supabase = await createClient()

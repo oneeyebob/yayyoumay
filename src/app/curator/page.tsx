@@ -170,6 +170,7 @@ export default async function CuratorPage() {
         profileInitial={profileName?.charAt(0).toUpperCase()}
         avatarHref="/curator/profiles"
         showLockButton={true}
+        showTimerIcon={true}
       />
 
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">

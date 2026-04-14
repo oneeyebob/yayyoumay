@@ -8,6 +8,7 @@ interface Props {
   showAvatar?: boolean
   showSettingsIcon?: boolean
   showLockButton?: boolean
+  showTimerIcon?: boolean
   profileInitial?: string
   avatarFormAction?: (formData: FormData) => void | Promise<void>
   avatarHref?: string
@@ -20,6 +21,7 @@ export default function SharedHeader({
   showAvatar = false,
   showSettingsIcon = false,
   showLockButton = false,
+  showTimerIcon = false,
   profileInitial,
   avatarFormAction,
   avatarHref,
@@ -56,6 +58,17 @@ export default function SharedHeader({
                 </svg>
               </button>
             </form>
+          )}
+          {showTimerIcon && (
+            <Link
+              href="/curator/timer"
+              aria-label="Skærmtimer"
+              className="w-10 h-10 flex items-center justify-center hover:opacity-70 transition-opacity"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-gray-500" aria-hidden>
+                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z" clipRule="evenodd" />
+              </svg>
+            </Link>
           )}
           {showSettingsIcon && (
             <Link

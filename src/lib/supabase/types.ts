@@ -353,6 +353,65 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          key: string
+          value: string
+          updated_at: string | null
+        }
+        Insert: {
+          key: string
+          value: string
+          updated_at?: string | null
+        }
+        Update: {
+          key?: string
+          value?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      screen_timers: {
+        Row: {
+          id: string
+          profile_id: string
+          expires_at: string
+          auto_cancel_at: string | null
+          pause_duration_minutes: number
+          pause_until: string | null
+          is_active: boolean
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          expires_at: string
+          auto_cancel_at?: string | null
+          pause_duration_minutes?: number
+          pause_until?: string | null
+          is_active?: boolean
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          profile_id?: string
+          expires_at?: string
+          auto_cancel_at?: string | null
+          pause_duration_minutes?: number
+          pause_until?: string | null
+          is_active?: boolean
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screen_timers_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       videos: {
         Row: {
           channel_id: string

@@ -149,6 +149,15 @@ export default function PinModal({ isOpen, onSuccess, onClose }: PinModalProps) 
           </p>
         )}
 
+        <p className="text-center mt-4">
+          <a
+            href="/curator/reset-pin"
+            className="text-xs text-gray-400 hover:text-gray-600 hover:underline transition-colors"
+          >
+            Glemt PIN?
+          </a>
+        </p>
+
         {onClose && (
           <button
             onClick={onClose}

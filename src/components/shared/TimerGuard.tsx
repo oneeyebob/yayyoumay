@@ -90,7 +90,7 @@ export default function TimerGuard({ profileId }: { profileId: string }) {
 
   if (isCountdown) {
     return (
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
         <div className="bg-orange-500 text-white rounded-2xl px-6 py-3 shadow-xl text-center">
           <p className="text-xs font-medium opacity-80 mb-0.5">Skærmtid slutter snart</p>
           <p className="text-4xl font-bold tabular-nums leading-none">{localSecondsRemaining}s</p>
@@ -117,9 +117,10 @@ export default function TimerGuard({ profileId }: { profileId: string }) {
           />
         )}
 
-        {/* Overlay content on top of video */}
-        <div
-          className="relative z-10 flex flex-col items-center gap-3 p-8 rounded-2xl text-center"
+        {/* Overlay content on top of video — whole box is clickable */}
+        <button
+          onClick={() => setPinOpen(true)}
+          className="relative z-10 flex flex-col items-center gap-3 p-8 rounded-2xl text-center cursor-pointer"
           style={{ background: embedUrl ? 'rgba(255,255,255,0.85)' : 'transparent' }}
         >
           <img src="/yay-logo-compact.svg" alt="YAY!" className="h-14 w-auto" />
@@ -132,13 +133,7 @@ export default function TimerGuard({ profileId }: { profileId: string }) {
           {!status.isPaused && (
             <p className="text-sm text-gray-500">Skærmtiden er slut</p>
           )}
-          <button
-            onClick={() => setPinOpen(true)}
-            className="mt-2 text-xs text-gray-400 hover:text-gray-600 transition-colors underline"
-          >
-            Kurator-adgang
-          </button>
-        </div>
+        </button>
       </div>
 
       <PinModal isOpen={pinOpen} onSuccess={handleUnlock} onClose={() => setPinOpen(false)} />

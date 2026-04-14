@@ -1,0 +1,1 @@
+ALTER TABLE screen_timers ADD COLUMN IF NOT EXISTS blocked_until TIMESTAMPTZ;

@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSuperAdmin } from '@/lib/admin'
 import SharedHeader from '@/components/shared/SharedHeader'
-import TimerUI, { type ProfileRow, type TimerRow } from './TimerUI'
+import TimerUI, { type ProfileRow, type TimerRow, type PauseRow } from './TimerUI'
 
 export default async function TimerPage() {
   const cookieStore = await cookies()
@@ -27,26 +27,36 @@ export default async function TimerPage() {
     name: p.name,
   }))
 
-  // Load active timers for these profiles
+  // Load timers and pauses for these profiles
   const profileIds = profiles.map((p) => p.id)
   let timers: TimerRow[] = []
+  let pauses: PauseRow[] = []
 
   if (profileIds.length > 0) {
     const admin = createAdminClient()
     const { data: timerData } = await admin
       .from('screen_timers')
-      .select('id, profile_id, expires_at, auto_cancel_at, pause_duration_minutes, is_active')
+      .select('id, profile_id, expires_at, auto_cancel_at, pause_duration_minutes, blocked_until, is_active')
       .in('profile_id', profileIds)
-      .eq('is_active', true)
 
-    timers = (timerData ?? []).map((t) => ({
-      id: t.id,
-      profileId: t.profile_id,
-      expiresAt: t.expires_at,
-      autoCancelAt: t.auto_cancel_at,
-      pauseDurationMinutes: t.pause_duration_minutes,
-      isActive: t.is_active,
-    }))
+    for (const t of timerData ?? []) {
+      if (t.is_active) {
+        timers.push({
+          id: t.id,
+          profileId: t.profile_id,
+          expiresAt: t.expires_at,
+          autoCancelAt: t.auto_cancel_at,
+          pauseDurationMinutes: t.pause_duration_minutes,
+          isActive: t.is_active,
+        })
+      }
+      if (t.blocked_until && new Date(t.blocked_until) > new Date()) {
+        pauses.push({
+          profileId: t.profile_id,
+          blockedUntil: t.blocked_until,
+        })
+      }
+    }
   }
 
   // Load app settings
@@ -63,11 +73,12 @@ export default async function TimerPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <SharedHeader style={{ zIndex: 100 }} />
+      <SharedHeader logoHref="/curator" style={{ zIndex: 100 }} />
       <div className="max-w-lg mx-auto px-4 py-8">
         <TimerUI
           profiles={profiles}
           activeTimers={timers}
+          activePauses={pauses}
           pauseVideoUrl={pauseVideoUrl}
           pauseDurationMinutes={pauseDurationMinutes}
           isSuperAdmin={superAdmin}

@@ -12,6 +12,7 @@ interface Props {
   profileInitial?: string
   avatarFormAction?: (formData: FormData) => void | Promise<void>
   avatarHref?: string
+  logoHref?: string
   sticky?: boolean
   className?: string
   style?: React.CSSProperties
@@ -25,6 +26,7 @@ export default function SharedHeader({
   profileInitial,
   avatarFormAction,
   avatarHref,
+  logoHref = '/',
   sticky = true,
   className,
   style,
@@ -38,7 +40,7 @@ export default function SharedHeader({
   return (
     <header className={headerClass} style={style}>
       <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
-        <Link href="/" aria-label="Gå til feed">
+        <Link href={logoHref} aria-label="Gå til feed">
           <img
             src="/yay-logo-compact.svg"
             alt="YAY!"

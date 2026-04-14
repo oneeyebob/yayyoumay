@@ -379,6 +379,9 @@ export type Database = {
           auto_cancel_at: string | null
           pause_duration_minutes: number
           pause_until: string | null
+          blocked_until: string | null
+          frozen_at: string | null
+          frozen_seconds_remaining: number | null
           is_active: boolean
           created_at: string | null
         }
@@ -389,6 +392,9 @@ export type Database = {
           auto_cancel_at?: string | null
           pause_duration_minutes?: number
           pause_until?: string | null
+          blocked_until?: string | null
+          frozen_at?: string | null
+          frozen_seconds_remaining?: number | null
           is_active?: boolean
           created_at?: string | null
         }
@@ -399,6 +405,9 @@ export type Database = {
           auto_cancel_at?: string | null
           pause_duration_minutes?: number
           pause_until?: string | null
+          blocked_until?: string | null
+          frozen_at?: string | null
+          frozen_seconds_remaining?: number | null
           is_active?: boolean
           created_at?: string | null
         }

@@ -529,13 +529,6 @@ export default function TimerUI({ profiles, activeTimers, activePauses, pauseVid
       ) : (
         <>
           <ScreenTimeSection profiles={profiles} activeTimers={activeTimers} pauseDurationMinutes={pauseDurationMinutes} />
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center" aria-hidden>
-              <div className="w-full border-t border-gray-200" />
-            </div>
-          </div>
-
           <PauseSection profiles={profiles} activePauses={activePauses} />
         </>
       )}

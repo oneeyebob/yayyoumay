@@ -32,7 +32,9 @@ export default function ResetPinPage() {
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
-          <img src="/yay-logo-compact.svg" alt="YAY!" className="h-10 w-auto" />
+          <a href="/curator">
+            <img src="/yay-logo-compact.svg" alt="YAY!" className="h-10 w-auto" />
+          </a>
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Nulstil kurator-PIN</h1>
@@ -76,11 +78,6 @@ export default function ResetPinPage() {
             {loading ? 'Verificerer…' : 'Bekræft nøgle'}
           </button>
 
-          <p className="text-center text-sm text-gray-500">
-            <a href="/curator" className="text-gray-400 hover:text-gray-600 hover:underline text-xs">
-              Tilbage til kuratormode
-            </a>
-          </p>
         </form>
       </div>
     </main>

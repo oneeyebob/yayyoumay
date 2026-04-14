@@ -74,7 +74,7 @@ export default async function TimerPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <SharedHeader logoHref="/curator" style={{ zIndex: 100 }} />
-      <div className="max-w-lg mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 py-8">
         <TimerUI
           profiles={profiles}
           activeTimers={timers}

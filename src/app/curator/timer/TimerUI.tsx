@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { setTimer, cancelTimer, updatePauseVideoUrl } from './actions'
+import { setTimer, cancelTimer, updatePauseVideoUrl, updatePauseDurationMinutes } from './actions'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -24,6 +24,7 @@ interface Props {
   profiles: ProfileRow[]
   activeTimers: TimerRow[]
   pauseVideoUrl: string
+  pauseDurationMinutes: number
   isSuperAdmin: boolean
 }
 
@@ -86,9 +87,6 @@ function ActiveTimerCard({
               Auto-annullering kl. {formatTime(timer.autoCancelAt)}
             </p>
           )}
-          <p className="text-xs text-gray-400 mt-0.5">
-            Pause: {timer.pauseDurationMinutes} min
-          </p>
         </div>
         <button
           onClick={handleCancel}
@@ -102,16 +100,18 @@ function ActiveTimerCard({
   )
 }
 
-// ── Set timer form ─────────────────────────────────────────────────────────────
+// ── Set timer form ────────────────────────────────────────────────────────────
 
 type DurationUnit = 'minutter' | 'timer'
 type TimerMode = 'varighed' | 'tidspunkt'
 
 function SetTimerForm({
   profiles,
+  pauseDurationMinutes,
   onTimerSet,
 }: {
   profiles: ProfileRow[]
+  pauseDurationMinutes: number
   onTimerSet: (timer: TimerRow) => void
 }) {
   const [selectedProfileId, setSelectedProfileId] = useState(profiles[0]?.id ?? '')
@@ -122,7 +122,6 @@ function SetTimerForm({
     const d = new Date(Date.now() + 60 * 60 * 1000)
     return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
   })
-  const [pauseDuration, setPauseDuration] = useState('10')
   const [autoCancelTime, setAutoCancelTime] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -158,8 +157,7 @@ function SetTimerForm({
     const { error: err } = await setTimer(
       selectedProfileId,
       expiresAt.toISOString(),
-      autoCancelAt?.toISOString() ?? null,
-      parseInt(pauseDuration, 10)
+      autoCancelAt?.toISOString() ?? null
     )
 
     setLoading(false)
@@ -170,7 +168,7 @@ function SetTimerForm({
       profileId: selectedProfileId,
       expiresAt: expiresAt.toISOString(),
       autoCancelAt: autoCancelAt?.toISOString() ?? null,
-      pauseDurationMinutes: parseInt(pauseDuration, 10),
+      pauseDurationMinutes,
       isActive: true,
     })
   }
@@ -237,20 +235,6 @@ function SetTimerForm({
         />
       )}
 
-      {/* Pause duration */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Pauselængde</label>
-        <select
-          value={pauseDuration}
-          onChange={(e) => setPauseDuration(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {[5, 10, 15, 30].map((n) => (
-            <option key={n} value={n}>{n} minutter</option>
-          ))}
-        </select>
-      </div>
-
       {/* Auto-cancel */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -282,10 +266,17 @@ function SetTimerForm({
   )
 }
 
-// ── Pause video URL section (super_admin only) ────────────────────────────────
+// ── Admin settings section (super_admin only) ─────────────────────────────────
 
-function PauseVideoSection({ initialUrl }: { initialUrl: string }) {
+function AdminSettingsSection({
+  initialUrl,
+  initialPauseDuration,
+}: {
+  initialUrl: string
+  initialPauseDuration: number
+}) {
   const [url, setUrl] = useState(initialUrl)
+  const [pauseDuration, setPauseDuration] = useState(String(initialPauseDuration))
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -294,40 +285,71 @@ function PauseVideoSection({ initialUrl }: { initialUrl: string }) {
     setSaving(true)
     setSaved(false)
     setError(null)
-    const { error: err } = await updatePauseVideoUrl(url)
+
+    const [urlResult, durationResult] = await Promise.all([
+      updatePauseVideoUrl(url),
+      updatePauseDurationMinutes(parseInt(pauseDuration, 10)),
+    ])
+
     setSaving(false)
+    const err = urlResult.error ?? durationResult.error
     if (err) setError(err)
     else setSaved(true)
   }
 
   return (
-    <section className="bg-blue-50 rounded-xl border border-blue-100 p-5">
-      <h2 className="font-bold text-gray-900 mb-1">Pause-video URL</h2>
-      <p className="text-sm text-gray-600 mb-3">YouTube-video der vises under en pause.</p>
-      <div className="flex gap-2">
+    <section className="bg-blue-50 rounded-xl border border-blue-100 p-5 space-y-4">
+      <h2 className="font-bold text-gray-900">Admin-indstillinger</h2>
+
+      {/* Pause video URL */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Pause-video URL</label>
+        <p className="text-xs text-gray-500 mb-2">YouTube-video der vises under en pause.</p>
         <input
           type="url"
           value={url}
           onChange={(e) => { setUrl(e.target.value); setSaved(false) }}
-          className="flex-1 min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
-        >
-          {saving ? 'Gemmer…' : 'Gem'}
-        </button>
       </div>
-      {saved && <p className="text-xs text-green-600 mt-2">Gemt.</p>}
-      {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
+
+      {/* Pause duration */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Pauselængde</label>
+        <select
+          value={pauseDuration}
+          onChange={(e) => { setPauseDuration(e.target.value); setSaved(false) }}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {[5, 10, 15, 30].map((n) => (
+            <option key={n} value={n}>{n} minutter</option>
+          ))}
+        </select>
+      </div>
+
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+      >
+        {saving ? 'Gemmer…' : 'Gem'}
+      </button>
+
+      {saved && <p className="text-xs text-green-600">Gemt.</p>}
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </section>
   )
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
-export default function TimerUI({ profiles, activeTimers: initialTimers, pauseVideoUrl, isSuperAdmin }: Props) {
+export default function TimerUI({
+  profiles,
+  activeTimers: initialTimers,
+  pauseVideoUrl,
+  pauseDurationMinutes,
+  isSuperAdmin,
+}: Props) {
   const [timers, setTimers] = useState<TimerRow[]>(initialTimers)
 
   const handleCancelled = useCallback((profileId: string) => {
@@ -372,13 +394,22 @@ export default function TimerUI({ profiles, activeTimers: initialTimers, pauseVi
 
       {/* Set timer */}
       {profiles.length > 0 ? (
-        <SetTimerForm profiles={profiles} onTimerSet={handleTimerSet} />
+        <SetTimerForm
+          profiles={profiles}
+          pauseDurationMinutes={pauseDurationMinutes}
+          onTimerSet={handleTimerSet}
+        />
       ) : (
         <p className="text-sm text-gray-500">Ingen profiler fundet.</p>
       )}
 
-      {/* Super admin: pause video URL */}
-      {isSuperAdmin && <PauseVideoSection initialUrl={pauseVideoUrl} />}
+      {/* Super admin settings */}
+      {isSuperAdmin && (
+        <AdminSettingsSection
+          initialUrl={pauseVideoUrl}
+          initialPauseDuration={pauseDurationMinutes}
+        />
+      )}
     </div>
   )
 }

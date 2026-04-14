@@ -49,13 +49,15 @@ export default async function TimerPage() {
     }))
   }
 
-  // Load pause video URL
-  const { data: settingData } = await supabase
+  // Load app settings
+  const { data: settingsData } = await supabase
     .from('app_settings')
-    .select('value')
-    .eq('key', 'pause_video_url')
-    .single()
-  const pauseVideoUrl = settingData?.value ?? ''
+    .select('key, value')
+    .in('key', ['pause_video_url', 'pause_duration_minutes'])
+
+  const settingsMap = Object.fromEntries((settingsData ?? []).map((s) => [s.key, s.value]))
+  const pauseVideoUrl = settingsMap['pause_video_url'] ?? ''
+  const pauseDurationMinutes = parseInt(settingsMap['pause_duration_minutes'] ?? '10', 10)
 
   const superAdmin = await isSuperAdmin(user.id)
 
@@ -67,6 +69,7 @@ export default async function TimerPage() {
           profiles={profiles}
           activeTimers={timers}
           pauseVideoUrl={pauseVideoUrl}
+          pauseDurationMinutes={pauseDurationMinutes}
           isSuperAdmin={superAdmin}
         />
       </div>

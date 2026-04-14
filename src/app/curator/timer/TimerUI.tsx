@@ -133,7 +133,7 @@ function ScreenTimeSection({
   }
 
   return (
-    <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+    <section className="w-full bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
       <h2 className="font-bold text-gray-900 text-lg">Sæt Timer</h2>
 
       {/* Profile */}
@@ -205,7 +205,7 @@ function ScreenTimeSection({
                 <select
                   value={durationUnit}
                   onChange={(e) => setDurationUnit(e.target.value as DurationUnit)}
-                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="minutter">minutter</option>
                   <option value="timer">timer</option>
@@ -363,7 +363,7 @@ function PauseSection({
   const buttonLabel = 'Sæt pause'
 
   return (
-    <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+    <section className="w-full bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
       <h2 className="font-bold text-gray-900 text-lg">Sæt YAY! på pause</h2>
 
       {/* Profile dropdown — hidden when allProfiles */}
@@ -492,7 +492,7 @@ function AdminSettingsSection({ initialUrl, initialPauseDuration }: { initialUrl
   }
 
   return (
-    <section className="bg-blue-50 rounded-xl border border-blue-100 p-5 space-y-4">
+    <section className="w-full bg-blue-50 rounded-xl border border-blue-100 p-5 space-y-4">
       <h2 className="font-bold text-gray-900">Admin-indstillinger</h2>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Pause-video URL</label>
@@ -508,7 +508,7 @@ function AdminSettingsSection({ initialUrl, initialPauseDuration }: { initialUrl
         </select>
       </div>
       <button onClick={handleSave} disabled={saving}
-        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors">
+        className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors">
         {saving ? 'Gemmer…' : 'Gem'}
       </button>
       {saved && <p className="text-xs text-green-600">Gemt.</p>}
@@ -521,7 +521,7 @@ function AdminSettingsSection({ initialUrl, initialPauseDuration }: { initialUrl
 
 export default function TimerUI({ profiles, activeTimers, activePauses, pauseVideoUrl, pauseDurationMinutes, isSuperAdmin }: Props) {
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <h1 className="text-xl font-bold text-gray-900">Skærmtid</h1>
 
       {profiles.length === 0 ? (

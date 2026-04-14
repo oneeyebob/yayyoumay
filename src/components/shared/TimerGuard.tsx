@@ -33,12 +33,19 @@ function formatTime(iso: string): string {
 
 export default function TimerGuard({ profileId }: { profileId: string }) {
   const [status, setStatus] = useState<TimerStatus | null>(null)
+  const [localSecondsRemaining, setLocalSecondsRemaining] = useState(0)
   const [pinOpen, setPinOpen] = useState(false)
+
+  // ── DB polling every 10s ───────────────────────────────────────────────────
 
   const poll = useCallback(async () => {
     try {
       const res = await fetch(`/api/timer-status?profileId=${encodeURIComponent(profileId)}`)
-      if (res.ok) setStatus(await res.json())
+      if (res.ok) {
+        const data: TimerStatus = await res.json()
+        setStatus(data)
+        setLocalSecondsRemaining(data.secondsRemaining)
+      }
     } catch {
       // Network error — keep showing last known state
     }
@@ -50,6 +57,18 @@ export default function TimerGuard({ profileId }: { profileId: string }) {
     return () => clearInterval(id)
   }, [poll])
 
+  // ── Local 1s countdown ────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (localSecondsRemaining <= 0) return
+    const id = setInterval(() => {
+      setLocalSecondsRemaining((s) => Math.max(0, s - 1))
+    }, 1_000)
+    return () => clearInterval(id)
+  }, [localSecondsRemaining])
+
+  // ── Unlock via PIN ────────────────────────────────────────────────────────
+
   async function handleUnlock() {
     const { error } = await unlockTimer(profileId)
     if (!error) {
@@ -60,8 +79,10 @@ export default function TimerGuard({ profileId }: { profileId: string }) {
 
   if (!status) return null
 
-  const isBlocked = status.timerExpired || status.isPaused
-  const isCountdown = !isBlocked && status.secondsRemaining > 0 && status.secondsRemaining <= 30
+  const isBlockedByDB = status.timerExpired || status.isPaused
+  const isBlockedLocally = localSecondsRemaining <= 0 && status.secondsRemaining > 0
+  const isBlocked = isBlockedByDB || isBlockedLocally
+  const isCountdown = !isBlocked && localSecondsRemaining > 0 && localSecondsRemaining <= 30
 
   if (!isBlocked && !isCountdown) return null
 
@@ -72,7 +93,7 @@ export default function TimerGuard({ profileId }: { profileId: string }) {
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
         <div className="bg-orange-500 text-white rounded-2xl px-6 py-3 shadow-xl text-center">
           <p className="text-xs font-medium opacity-80 mb-0.5">Skærmtid slutter snart</p>
-          <p className="text-4xl font-bold tabular-nums leading-none">{status.secondsRemaining}s</p>
+          <p className="text-4xl font-bold tabular-nums leading-none">{localSecondsRemaining}s</p>
         </div>
       </div>
     )
@@ -108,8 +129,8 @@ export default function TimerGuard({ profileId }: { profileId: string }) {
               Fortsætter kl. {formatTime(status.pauseUntil)}
             </p>
           )}
-          {status.timerExpired && !status.isPaused && (
-            <p className="text-sm text-gray-500">Skærmtiden er brugt op for i dag</p>
+          {!status.isPaused && (
+            <p className="text-sm text-gray-500">Skærmtiden er slut</p>
           )}
           <button
             onClick={() => setPinOpen(true)}

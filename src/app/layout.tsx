@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Outfit, Courier_Prime } from "next/font/google";
-import { barlow } from "@/lib/fonts";
 import "./globals.css";
 
 const outfit = Outfit({

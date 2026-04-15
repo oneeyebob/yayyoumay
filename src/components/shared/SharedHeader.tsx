@@ -3,7 +3,6 @@
 import React from 'react'
 import Link from 'next/link'
 import { lockCurator } from '@/app/curator/actions'
-import { barlow } from '@/lib/fonts'
 
 interface Props {
   showAvatar?: boolean
@@ -56,9 +55,9 @@ export default function SharedHeader({
               <button
                 type="submit"
                 aria-label="Lås kuratormode"
-                className={`h-10 flex items-center justify-center px-1 hover:opacity-70 transition-opacity text-base font-light text-gray-900 tracking-wider ${barlow.className}`}
+                className={`flex items-center justify-center border border-gray-300 rounded-md px-3 py-1 hover:opacity-70 transition-opacity text-base font-light text-gray-900`}
               >
-                LÅS
+                Lås
               </button>
             </form>
           )}
@@ -66,27 +65,27 @@ export default function SharedHeader({
             <Link
               href="/curator/account"
               aria-label="Konto"
-              className={`h-10 flex items-center justify-center px-1 hover:opacity-70 transition-opacity text-base font-light text-gray-900 tracking-wider ${barlow.className}`}
+              className={`flex items-center justify-center border border-gray-300 rounded-md px-3 py-1 hover:opacity-70 transition-opacity text-base font-light text-gray-900`}
             >
-              KONTO
+              Konto
             </Link>
           )}
           {showTimerIcon && (
             <Link
               href="/curator/timer"
               aria-label="Skærmtimer"
-              className={`h-10 flex items-center justify-center px-1 hover:opacity-70 transition-opacity text-base font-light text-gray-900 tracking-wider ${barlow.className}`}
+              className={`flex items-center justify-center border border-gray-300 rounded-md px-3 py-1 hover:opacity-70 transition-opacity text-base font-light text-gray-900`}
             >
-              TIMER
+              Timer
             </Link>
           )}
           {showSettingsIcon && (
             <Link
               href="/curator"
               aria-label="Kuratormode"
-              className={`h-10 flex items-center justify-center px-1 hover:opacity-70 transition-opacity text-base font-light text-gray-900 tracking-wider ${barlow.className}`}
+              className={`flex items-center justify-center border border-gray-300 rounded-md px-3 py-1 hover:opacity-70 transition-opacity text-base font-light text-gray-900`}
             >
-              INDSTIL
+              Indstil
             </Link>
           )}
           {showAvatar && profileInitial && (

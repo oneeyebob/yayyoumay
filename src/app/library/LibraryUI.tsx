@@ -3,6 +3,11 @@
 import { useState, useTransition } from 'react'
 import { subscribeToList, unsubscribeFromList } from './actions'
 
+interface PreviewItems {
+  channels: Array<{ itemId: string; name: string; thumbnail_url: string | null }>
+  videos: Array<{ itemId: string; title: string; thumbnail_url: string | null }>
+}
+
 export interface PublicList {
   id: string
   name: string
@@ -33,40 +38,104 @@ function ListCard({
   isLoading: boolean
   onToggle: () => void
 }) {
+  const [expanded, setExpanded] = useState(false)
+  const [preview, setPreview] = useState<PreviewItems | null>(null)
+  const [loadingPreview, setLoadingPreview] = useState(false)
+
+  async function handleToggleExpand() {
+    if (!expanded && preview === null) {
+      setLoadingPreview(true)
+      try {
+        const res = await fetch(`/api/list-preview?listId=${list.id}`)
+        const data: PreviewItems = await res.json()
+        setPreview(data)
+      } finally {
+        setLoadingPreview(false)
+      }
+    }
+    setExpanded((v) => !v)
+  }
+
+  const allItems = preview
+    ? [
+        ...preview.channels.map((c) => ({ kind: 'channel' as const, id: c.itemId, label: c.name, thumbnail_url: c.thumbnail_url })),
+        ...preview.videos.map((v) => ({ kind: 'video' as const, id: v.itemId, label: v.title, thumbnail_url: v.thumbnail_url })),
+      ]
+    : []
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-6 flex items-start justify-between gap-4">
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-gray-900">{list.name}</p>
-        <p className="text-xs text-gray-400 mt-1">{list.item_count} videoer / kanaler</p>
-        {list.channelThumbnails.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            {list.channelThumbnails.map((url, i) => (
-              <img
-                key={i}
-                src={url}
-                alt=""
-                className="w-10 h-10 rounded-full object-cover bg-gray-100"
-              />
-            ))}
-          </div>
-        )}
-        {list.description && (
-          <p className="text-sm text-gray-500 mt-2 line-clamp-2">{list.description}</p>
-        )}
+    <div className="bg-white rounded-2xl shadow-sm p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-gray-900">{list.name}</p>
+          <p className="text-xs text-gray-400 mt-1">{list.item_count} videoer / kanaler</p>
+          {list.channelThumbnails.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {list.channelThumbnails.map((url, i) => (
+                <img
+                  key={i}
+                  src={url}
+                  alt=""
+                  className="w-10 h-10 rounded-full object-cover bg-gray-100"
+                />
+              ))}
+            </div>
+          )}
+          {list.description && (
+            <p className="text-sm text-gray-500 mt-2 line-clamp-2">{list.description}</p>
+          )}
+        </div>
+        <button
+          onClick={onToggle}
+          disabled={isLoading}
+          className={`shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+            isSub
+              ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-gray-900 text-white hover:bg-gray-700'
+          }`}
+        >
+          {isLoading ? (
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden />
+          ) : isSub ? 'Abonnerer' : 'Abonnér'}
+        </button>
       </div>
-      <button
-        onClick={onToggle}
-        disabled={isLoading}
-        className={`shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-          isSub
-            ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            : 'bg-gray-900 text-white hover:bg-gray-700'
-        }`}
-      >
-        {isLoading ? (
-          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden />
-        ) : isSub ? 'Abonnerer' : 'Abonnér'}
-      </button>
+
+      {/* Expand / collapse */}
+      {list.item_count > 0 && (
+        <div className="mt-3">
+          <button
+            onClick={handleToggleExpand}
+            disabled={loadingPreview}
+            className="text-xs text-gray-400 hover:text-gray-700 disabled:opacity-50 transition-colors"
+          >
+            {loadingPreview
+              ? 'Henter…'
+              : expanded
+              ? 'Vis færre'
+              : `Se indhold (${list.item_count})`}
+          </button>
+
+          {expanded && preview && (
+            <div className="mt-3 border-t border-gray-100 pt-3 space-y-1">
+              {allItems.length === 0 ? (
+                <p className="text-sm text-gray-400 italic">Ingen emner</p>
+              ) : (
+                allItems.map((item) => (
+                  <div key={item.id} className="flex items-center gap-3 py-1.5">
+                    {item.thumbnail_url ? (
+                      <img src={item.thumbnail_url} alt="" className="w-8 h-8 rounded object-cover shrink-0 bg-gray-100" />
+                    ) : (
+                      <div className="w-8 h-8 rounded bg-gray-100 shrink-0" />
+                    )}
+                    <span className="text-sm text-gray-700 line-clamp-1">{item.label}</span>
+                    <span className="text-xs text-gray-400 shrink-0">{item.kind === 'channel' ? 'Kanal' : 'Video'}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

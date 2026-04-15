@@ -40,7 +40,7 @@ export default function SharedHeader({
   return (
     <header className={headerClass} style={style}>
       <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
-        <Link href={logoHref} aria-label="Gå til feed">
+        <Link href={logoHref} aria-label="Gå til feed" className="ml-3">
           <img
             src="/yay-logo-compact.svg"
             alt="YAY!"

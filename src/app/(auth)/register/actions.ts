@@ -3,6 +3,7 @@
 import bcrypt from 'bcryptjs'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 // Accounts have no real email — the Supabase auth email is a deterministic fake
 // derived from the chosen username. This keeps PII off the platform entirely.
@@ -15,6 +16,18 @@ export async function registerUser(params: {
   hotkey: string   // raw key generated client-side; hashed here before storage
 }): Promise<{ error: string | null }> {
   const supabase = await createClient()
+
+  // Pre-check: reject immediately if username is already in user_settings
+  const admin = createAdminClient()
+  const { data: existingUser } = await admin
+    .from('user_settings')
+    .select('user_id')
+    .eq('username', params.username.trim())
+    .maybeSingle()
+
+  if (existingUser) {
+    return { error: 'Brugernavnet er allerede taget — vælg et andet.' }
+  }
 
   const fakeEmail = `${params.username.trim().toLowerCase()}@yayyoumay.local`
   const hotkeyHash = await bcrypt.hash(params.hotkey, 10)

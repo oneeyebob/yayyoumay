@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html
       lang="da"
-      className={`${outfit.variable} ${courierPrime.variable} ${barlow.variable} h-full antialiased`}
+      className={`${outfit.variable} ${courierPrime.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}

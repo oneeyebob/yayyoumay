@@ -28,6 +28,10 @@ export default async function ProfilesPage() {
     listCount: Array.isArray(p.lists) ? p.lists.length : 0,
   }))
 
+  if (profiles.length === 1) {
+    redirect(`/curator/profiles/${profiles[0].id}`)
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <ProfilesUI profiles={profiles} />

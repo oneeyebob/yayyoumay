@@ -1,8 +1,8 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { House, BookOpen, Users, Settings } from 'lucide-react'
-import { lockCurator } from './actions'
+import { House, BookOpen, Users, Settings, LogOut } from 'lucide-react'
+import { logoutAction } from '@/app/actions'
 
 const bottomItems = [
   { href: '/curator', label: 'Oversigt', icon: House },
@@ -79,13 +79,11 @@ export default function CuratorNav({ profileInitial }: { profileInitial: string 
           </div>
         </nav>
 
-        <div style={{ padding: '16px 20px' }}>
-          <form action={lockCurator}>
-            <button
-              type="submit"
-              style={{ color: '#999', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-            >
-              Lås
+        <div style={{ borderTop: '0.5px solid #e5e5e5', padding: '12px' }}>
+          <form action={logoutAction}>
+            <button type="submit" className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-sm transition-colors hover:bg-gray-100" style={{ color: '#999' }}>
+              <LogOut size={15} />
+              Log ud
             </button>
           </form>
         </div>

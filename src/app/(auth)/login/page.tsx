@@ -4,6 +4,16 @@ import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '10px 12px',
+  border: '0.5px solid #ddd',
+  borderRadius: 8,
+  fontSize: 14,
+  outline: 'none',
+  boxSizing: 'border-box',
+}
+
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -15,6 +25,8 @@ function LoginForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [usernameFocused, setUsernameFocused] = useState(false)
+  const [passwordFocused, setPasswordFocused] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -41,80 +53,231 @@ function LoginForm() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Log ind</h1>
-        <p className="text-sm text-gray-500 mb-8">Velkommen tilbage.</p>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f5f5f5',
+        padding: '16px',
+      }}
+    >
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          maxWidth: 900,
+          width: '100%',
+          borderRadius: 12,
+          overflow: 'hidden',
+          border: '0.5px solid #e5e5e5',
+        }}
+        className="login-card"
+      >
 
-        {passwordReset && (
-          <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-6">
-            ✓ Adgangskode opdateret. Log ind med din nye adgangskode.
+        {/* ── Left column — brand ──────────────────────────────────────── */}
+        <div
+          className="login-left"
+          style={{
+            backgroundColor: '#1a1a1a',
+            padding: 48,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <img
+              src="/yay-logo-compact.svg"
+              alt="YAY!"
+              style={{ height: 36, filter: 'brightness(0) invert(1)', marginBottom: 32 }}
+            />
+            <p
+              style={{
+                color: 'white',
+                fontSize: 22,
+                fontWeight: 500,
+                lineHeight: 1.3,
+                marginBottom: 12,
+              }}
+            >
+              VideoTube til børn - af forældre til forældre.
+            </p>
+            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, lineHeight: 1.6 }}>
+              Vi viser rigtige YouTube-videoer og kanaler - men kun dem andre forældre har godkendt. Ingen overraskelser, ingen algoritme.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 48 }}>
+            {['Ingen reklamer', 'Ingen algoritme', 'Kun godkendt indhold'].map((label) => (
+              <span
+                key={label}
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  color: 'rgba(255,255,255,0.5)',
+                  fontSize: 12,
+                  padding: '5px 12px',
+                  borderRadius: 20,
+                }}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Right column — form ──────────────────────────────────────── */}
+        <div style={{ backgroundColor: 'white', padding: 48 }}>
+
+          {/* Mobile-only logo */}
+          <img
+            src="/yay-logo-compact.svg"
+            alt="YAY!"
+            className="login-mobile-logo"
+            style={{ height: 28, filter: 'brightness(0)', marginBottom: 24, display: 'none' }}
+          />
+
+          <p style={{ fontSize: 20, fontWeight: 500, color: '#1a1a1a', marginBottom: 4 }}>
+            Log ind
           </p>
-        )}
+          <p style={{ fontSize: 14, color: '#999', marginBottom: 28 }}>
+            Velkommen tilbage.
+          </p>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-              Brugernavn
-            </label>
-            <input
-              id="username"
-              type="text"
-              required
-              autoComplete="username"
-              autoFocus
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Dit brugernavn"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Adgangskode
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Din adgangskode"
-            />
-          </div>
-
-          {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {error}
+          {passwordReset && (
+            <p
+              style={{
+                fontSize: 13,
+                color: '#166534',
+                backgroundColor: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                borderRadius: 8,
+                padding: '8px 12px',
+                marginBottom: 20,
+              }}
+            >
+              ✓ Adgangskode opdateret. Log ind med din nye adgangskode.
             </p>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? 'Logger ind…' : 'Log ind'}
-          </button>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div>
+              <label
+                htmlFor="username"
+                style={{ display: 'block', fontSize: 13, color: '#555', marginBottom: 6 }}
+              >
+                Brugernavn
+              </label>
+              <input
+                id="username"
+                type="text"
+                required
+                autoComplete="username"
+                autoFocus
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                onFocus={() => setUsernameFocused(true)}
+                onBlur={() => setUsernameFocused(false)}
+                placeholder="Dit brugernavn"
+                style={{
+                  ...inputStyle,
+                  borderColor: usernameFocused ? '#1a1a1a' : '#ddd',
+                }}
+              />
+            </div>
 
-          <p className="text-center text-sm text-gray-500">
-            Ny her?{' '}
-            <a href="/register" className="text-blue-600 hover:underline font-medium">
-              Opret konto
-            </a>
-          </p>
+            <div>
+              <label
+                htmlFor="password"
+                style={{ display: 'block', fontSize: 13, color: '#555', marginBottom: 6 }}
+              >
+                Adgangskode
+              </label>
+              <input
+                id="password"
+                type="password"
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onFocus={() => setPasswordFocused(true)}
+                onBlur={() => setPasswordFocused(false)}
+                placeholder="Din adgangskode"
+                style={{
+                  ...inputStyle,
+                  borderColor: passwordFocused ? '#1a1a1a' : '#ddd',
+                }}
+              />
+            </div>
 
-          <p className="text-center text-sm text-gray-500">
-            <a href="/recover" className="text-gray-400 hover:text-gray-600 hover:underline text-xs">
-              Glemt din adgangskode?
-            </a>
-          </p>
-        </form>
+            {error && (
+              <p
+                style={{
+                  fontSize: 13,
+                  color: '#dc2626',
+                  backgroundColor: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: 8,
+                  padding: '8px 12px',
+                }}
+              >
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                backgroundColor: '#1a1a1a',
+                color: 'white',
+                border: 'none',
+                borderRadius: 8,
+                padding: 11,
+                width: '100%',
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.5 : 1,
+                marginTop: 4,
+              }}
+            >
+              {loading ? 'Logger ind…' : 'Log ind'}
+            </button>
+
+            <p style={{ textAlign: 'center', fontSize: 13, color: '#999', margin: 0 }}>
+              Ny her?{' '}
+              <a href="/register" style={{ color: '#1a1a1a', fontWeight: 500, textDecoration: 'none' }}>
+                Opret konto
+              </a>
+            </p>
+
+            <p style={{ textAlign: 'center', margin: 0 }}>
+              <a href="/recover" style={{ fontSize: 13, color: '#ccc', textDecoration: 'none' }}>
+                Glemt din adgangskode?
+              </a>
+            </p>
+          </form>
+        </div>
+
       </div>
-    </main>
+
+      {/* Mobile responsive styles */}
+      <style>{`
+        @media (max-width: 768px) {
+          .login-card {
+            grid-template-columns: 1fr !important;
+          }
+          .login-left {
+            display: none !important;
+          }
+          .login-mobile-logo {
+            display: block !important;
+          }
+        }
+      `}</style>
+    </div>
   )
 }
 

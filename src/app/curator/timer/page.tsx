@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSuperAdmin } from '@/lib/admin'
-import SharedHeader from '@/components/shared/SharedHeader'
 import TimerUI, { type ProfileRow, type TimerRow, type PauseRow } from './TimerUI'
 
 export default async function TimerPage() {
@@ -72,18 +71,15 @@ export default async function TimerPage() {
   const superAdmin = await isSuperAdmin(user.id)
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <SharedHeader logoHref="/curator" style={{ zIndex: 100 }} />
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <TimerUI
-          profiles={profiles}
-          activeTimers={timers}
-          activePauses={pauses}
-          pauseVideoUrl={pauseVideoUrl}
-          pauseDurationMinutes={pauseDurationMinutes}
-          isSuperAdmin={superAdmin}
-        />
-      </div>
-    </main>
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <TimerUI
+        profiles={profiles}
+        activeTimers={timers}
+        activePauses={pauses}
+        pauseVideoUrl={pauseVideoUrl}
+        pauseDurationMinutes={pauseDurationMinutes}
+        isSuperAdmin={superAdmin}
+      />
+    </div>
   )
 }

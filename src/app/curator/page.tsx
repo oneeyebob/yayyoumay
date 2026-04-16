@@ -8,7 +8,7 @@ import SettingsUI, { type KeywordRow } from './settings/SettingsUI'
 import YayListUI, { type YayChannel, type YayVideo, type NayVideo, type SubscribedList } from './YayListUI'
 import SharedHeader from '@/components/shared/SharedHeader'
 import { lockCurator } from './actions'
-import { Lock, LockOpen, Timer } from 'lucide-react'
+import { Lock, LockOpen, Timer, House, BookOpen, Users, Settings } from 'lucide-react'
 
 export default async function CuratorPage() {
   const cookieStore = await cookies()
@@ -223,7 +223,7 @@ export default async function CuratorPage() {
 
         {/* ── Sidebar ─────────────────────────────────────────────────────── */}
         <aside
-          className="flex flex-col shrink-0 sticky overflow-y-auto"
+          className="hidden md:flex flex-col shrink-0 sticky overflow-y-auto"
           style={{
             width: 220,
             backgroundColor: '#f9f9f9',
@@ -344,7 +344,7 @@ export default async function CuratorPage() {
 
         {/* ── Main content ──────────────────────────────────────────────────── */}
         <main className="flex-1" style={{ backgroundColor: '#f5f5f5' }}>
-          <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+          <div className="max-w-4xl mx-auto px-6 py-8 pb-20 md:pb-0 space-y-6">
 
           {/* Heading */}
           <div>
@@ -397,6 +397,26 @@ export default async function CuratorPage() {
           />
 
         </div>
+
+          {/* ── Mobile bottom nav ─────────────────────────────────────────── */}
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex items-center justify-around px-2 py-2 z-50">
+            <Link href="/curator" className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg">
+              <House size={20} className="text-gray-900" />
+              <span className="text-[10px] text-gray-900">Oversigt</span>
+            </Link>
+            <Link href="/library" className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg">
+              <BookOpen size={20} className="text-gray-400" />
+              <span className="text-[10px] text-gray-400">Bibliotek</span>
+            </Link>
+            <Link href="/curator/profiles" className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg">
+              <Users size={20} className="text-gray-400" />
+              <span className="text-[10px] text-gray-400">Profiler</span>
+            </Link>
+            <Link href="/curator/account" className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg">
+              <Settings size={20} className="text-gray-400" />
+              <span className="text-[10px] text-gray-400">Konto</span>
+            </Link>
+          </nav>
         </main>
 
       </div>

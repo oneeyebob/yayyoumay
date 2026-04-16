@@ -7,8 +7,6 @@ import PasteUrlUI from './PasteUrlUI'
 import SettingsUI, { type KeywordRow } from './settings/SettingsUI'
 import YayListUI, { type YayChannel, type YayVideo, type NayVideo, type SubscribedList } from './YayListUI'
 import SharedHeader from '@/components/shared/SharedHeader'
-import { lockCurator } from './actions'
-import { Lock, LockOpen, Timer, House, BookOpen, Users, Settings } from 'lucide-react'
 
 export default async function CuratorPage() {
   const cookieStore = await cookies()
@@ -168,258 +166,59 @@ export default async function CuratorPage() {
   const videoCount = (yayVideos ?? []).length
   const subCount = subscribedLists.length
 
-  const profileInitial = profileName?.charAt(0).toUpperCase()
-
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="max-w-4xl mx-auto px-6 py-8 pb-20 md:pb-0 space-y-6">
 
-      {/* ── Topbar ─────────────────────────────────────────────────────────── */}
-      <header
-        className="flex items-center justify-between shrink-0 sticky top-0 z-10"
-        style={{ height: 64, backgroundColor: '#1a1a1a', paddingLeft: 24, paddingRight: 24 }}
-      >
-        {/* Logo */}
-        <Link href="/" aria-label="Gå til feed">
-          <img
-            src="/yay-logo-compact.svg"
-            alt="YAY!"
-            className="h-8 w-auto"
-            style={{ filter: 'brightness(0) invert(1)' }}
-          />
-        </Link>
-
-        {/* Right actions */}
-        <div className="flex items-center" style={{ gap: 8 }}>
-          <Link href="/curator/timer" aria-label="Timer" className="flex items-center justify-center w-9 h-9 rounded-md hover:bg-white/10 transition-colors">
-            <Timer size={18} color="white" />
-          </Link>
-          <form action={lockCurator} style={{ display: 'inline' }}>
-            <button type="submit" aria-label={unlocked ? 'Lås' : 'Lås op'} className="flex items-center justify-center w-9 h-9 rounded-md hover:bg-white/10 transition-colors">
-              {unlocked ? <LockOpen size={18} color="white" /> : <Lock size={18} color="white" />}
-            </button>
-          </form>
-          {profileInitial && (
-            <Link href="/curator/profiles">
-              <div
-                className="flex items-center justify-center font-semibold"
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '50%',
-                  backgroundColor: '#3C3489',
-                  color: '#CECBF6',
-                  fontSize: 14,
-                }}
-              >
-                {profileInitial}
-              </div>
-            </Link>
-          )}
-        </div>
-      </header>
-
-      {/* ── Body ───────────────────────────────────────────────────────────── */}
-      <div className="flex flex-1">
-
-        {/* ── Sidebar ─────────────────────────────────────────────────────── */}
-        <aside
-          className="hidden md:flex flex-col shrink-0 sticky overflow-y-auto"
-          style={{
-            width: 220,
-            backgroundColor: '#f9f9f9',
-            borderRight: '1px solid #e5e5e5',
-            top: 64,
-            height: 'calc(100vh - 64px)',
-          }}
-        >
-          {/* Nav */}
-          <nav className="flex-1" style={{ paddingTop: 24, paddingLeft: 20, paddingRight: 20 }}>
-            {/* INDHOLD */}
-            <p
-              style={{
-                fontSize: 11,
-                color: '#999',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-                marginBottom: 8,
-              }}
-            >
-              Indhold
+      {/* Heading */}
+      <div>
+        {profileName ? (
+          <h1 className="text-xl font-bold text-gray-900">Hej {profileName}</h1>
+        ) : (
+          <>
+            <h1 className="text-xl font-bold text-gray-900">Hej 👋</h1>
+            <p className="text-xs text-gray-400 mt-0.5">
+              <Link href="/" className="underline hover:text-gray-600">
+                Vælg en profil
+              </Link>{' '}
+              for at kuratere
             </p>
-            <div className="flex flex-col" style={{ gap: 2 }}>
-              <Link
-                href="/curator"
-                style={{
-                  fontSize: 14,
-                  color: '#1a1a1a',
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  backgroundColor: '#eeeeee',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                  display: 'block',
-                }}
-              >
-                Oversigt
-              </Link>
-              <Link
-                href="/library"
-                style={{
-                  fontSize: 14,
-                  color: '#444',
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  textDecoration: 'none',
-                  display: 'block',
-                }}
-              >
-                Bibliotek
-              </Link>
-            </div>
-
-            {/* INDSTILLINGER */}
-            <p
-              style={{
-                fontSize: 11,
-                color: '#999',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-                marginBottom: 8,
-                marginTop: 24,
-              }}
-            >
-              Indstillinger
-            </p>
-            <div className="flex flex-col" style={{ gap: 2 }}>
-              <Link
-                href="/curator/profiles"
-                style={{
-                  fontSize: 14,
-                  color: '#444',
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  textDecoration: 'none',
-                  display: 'block',
-                }}
-              >
-                Profiler
-              </Link>
-              <Link
-                href="/curator/account"
-                style={{
-                  fontSize: 14,
-                  color: '#444',
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  textDecoration: 'none',
-                  display: 'block',
-                }}
-              >
-                Konto
-              </Link>
-            </div>
-          </nav>
-
-          {/* Lock link at bottom */}
-          <div style={{ padding: '16px 20px' }}>
-            <form action={lockCurator}>
-              <button
-                type="submit"
-                style={{
-                  color: '#999',
-                  fontSize: 13,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                }}
-              >
-                Lås
-              </button>
-            </form>
-          </div>
-        </aside>
-
-        {/* ── Main content ──────────────────────────────────────────────────── */}
-        <main className="flex-1" style={{ backgroundColor: '#f5f5f5' }}>
-          <div className="max-w-4xl mx-auto px-6 py-8 pb-20 md:pb-0 space-y-6">
-
-          {/* Heading */}
-          <div>
-            {profileName ? (
-              <h1 className="text-xl font-bold text-gray-900">Hej {profileName}</h1>
-            ) : (
-              <>
-                <h1 className="text-xl font-bold text-gray-900">Hej 👋</h1>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  <Link href="/" className="underline hover:text-gray-600">
-                    Vælg en profil
-                  </Link>{' '}
-                  for at kuratere
-                </p>
-              </>
-            )}
-          </div>
-
-          {/* Stat cards */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
-              <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Kanaler</p>
-              <p className="text-2xl font-bold text-gray-900">{channelCount}</p>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
-              <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Videoer</p>
-              <p className="text-2xl font-bold text-gray-900">{videoCount}</p>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
-              <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Abonnementer</p>
-              <p className="text-2xl font-bold text-gray-900">{subCount}</p>
-            </div>
-          </div>
-
-          {/* Paste URL */}
-          {listId && <PasteUrlUI listId={listId} />}
-
-          <hr className="border-t border-gray-200" />
-
-          {/* Settings: keyword blacklist + ads info */}
-          <SettingsUI initialKeywords={keywords} />
-
-          {/* Yay'd content list */}
-          <YayListUI
-            yayChannels={(yayChannels ?? []) as YayChannel[]}
-            yayVideos={(yayVideos ?? []) as YayVideo[]}
-            nayVideos={(nayVideos ?? []) as NayVideo[]}
-            subscribedLists={subscribedLists}
-            ownListId={listId}
-          />
-
-        </div>
-
-          {/* ── Mobile bottom nav ─────────────────────────────────────────── */}
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex items-center justify-around px-2 py-2 z-50">
-            <Link href="/curator" className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg">
-              <House size={20} className="text-gray-900" />
-              <span className="text-[10px] text-gray-900">Oversigt</span>
-            </Link>
-            <Link href="/library" className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg">
-              <BookOpen size={20} className="text-gray-400" />
-              <span className="text-[10px] text-gray-400">Bibliotek</span>
-            </Link>
-            <Link href="/curator/profiles" className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg">
-              <Users size={20} className="text-gray-400" />
-              <span className="text-[10px] text-gray-400">Profiler</span>
-            </Link>
-            <Link href="/curator/account" className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg">
-              <Settings size={20} className="text-gray-400" />
-              <span className="text-[10px] text-gray-400">Konto</span>
-            </Link>
-          </nav>
-        </main>
-
+          </>
+        )}
       </div>
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
+          <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Kanaler</p>
+          <p className="text-2xl font-bold text-gray-900">{channelCount}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
+          <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Videoer</p>
+          <p className="text-2xl font-bold text-gray-900">{videoCount}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
+          <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Abonnementer</p>
+          <p className="text-2xl font-bold text-gray-900">{subCount}</p>
+        </div>
+      </div>
+
+      {/* Paste URL */}
+      {listId && <PasteUrlUI listId={listId} />}
+
+      <hr className="border-t border-gray-200" />
+
+      {/* Settings: keyword blacklist + ads info */}
+      <SettingsUI initialKeywords={keywords} />
+
+      {/* Yay'd content list */}
+      <YayListUI
+        yayChannels={(yayChannels ?? []) as YayChannel[]}
+        yayVideos={(yayVideos ?? []) as YayVideo[]}
+        nayVideos={(nayVideos ?? []) as NayVideo[]}
+        subscribedLists={subscribedLists}
+        ownListId={listId}
+      />
+
     </div>
   )
 }

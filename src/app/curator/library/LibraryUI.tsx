@@ -179,7 +179,7 @@ export default function LibraryUI({ recommendedLists, communityLists, subscribed
 
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-gray-900">YayYouMay Bibliotek</h1>
+        <h1 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-baskerville), Georgia, serif' }}>YayYouMay Bibliotek</h1>
         <p className="text-sm text-gray-500 mt-1">Kuratorerede samlinger du kan tilføje til din profil</p>
       </div>
 

@@ -100,9 +100,10 @@ function LoginForm() {
                 fontWeight: 500,
                 lineHeight: 1.3,
                 marginBottom: 12,
+                fontFamily: 'var(--font-baskerville), Georgia, serif',
               }}
             >
-              VideoTube til børn - af forældre til forældre.
+              <>VideoTube til børn -<br />af forældre til forældre.</>
             </p>
             <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, lineHeight: 1.6 }}>
               Vi viser rigtige YouTube-videoer og kanaler - men kun dem andre forældre har godkendt. Ingen overraskelser, ingen algoritme.
@@ -138,7 +139,7 @@ function LoginForm() {
             style={{ height: 28, filter: 'brightness(0)', marginBottom: 24, display: 'none' }}
           />
 
-          <p style={{ fontSize: 20, fontWeight: 500, color: '#1a1a1a', marginBottom: 4 }}>
+          <p style={{ fontSize: 20, fontWeight: 500, color: '#1a1a1a', marginBottom: 4, fontFamily: 'var(--font-baskerville), Georgia, serif' }}>
             Log ind
           </p>
           <p style={{ fontSize: 14, color: '#999', marginBottom: 28 }}>

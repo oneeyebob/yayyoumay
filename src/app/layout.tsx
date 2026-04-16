@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Outfit, Courier_Prime } from "next/font/google";
+import { Outfit, Courier_Prime, Libre_Baskerville } from "next/font/google";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -11,6 +11,12 @@ const courierPrime = Courier_Prime({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-courier-prime",
+});
+
+const libreBaskerville = Libre_Baskerville({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-baskerville",
 });
 
 export const metadata: Metadata = {
@@ -26,7 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="da"
-      className={`${outfit.variable} ${courierPrime.variable} h-full antialiased`}
+      className={`${outfit.variable} ${courierPrime.variable} ${libreBaskerville.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}

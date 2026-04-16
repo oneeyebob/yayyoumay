@@ -172,10 +172,10 @@ export default async function CuratorPage() {
       {/* Heading */}
       <div>
         {profileName ? (
-          <h1 className="text-xl font-bold text-gray-900">Hej {profileName}</h1>
+          <h1 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-baskerville), Georgia, serif' }}>Hej {profileName}</h1>
         ) : (
           <>
-            <h1 className="text-xl font-bold text-gray-900">Hej 👋</h1>
+            <h1 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-baskerville), Georgia, serif' }}>Hej 👋</h1>
             <p className="text-xs text-gray-400 mt-0.5">
               <Link href="/" className="underline hover:text-gray-600">
                 Vælg en profil

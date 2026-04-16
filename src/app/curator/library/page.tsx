@@ -1,8 +1,6 @@
 import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import SharedHeader from '@/components/shared/SharedHeader'
 import LibraryUI, { type PublicList } from './LibraryUI'
 
 const ADMIN_USER_ID = 'c0e3d233-4c33-4bd9-98b3-4625a9b731a3'
@@ -19,8 +17,6 @@ export default async function LibraryPage({
   const offset = (communityPage - 1) * PAGE_SIZE
 
   const cookieStore = await cookies()
-  const unlocked = cookieStore.get('curator_unlocked')?.value === 'true'
-  if (!unlocked) redirect('/curator')
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -147,22 +143,16 @@ export default async function LibraryPage({
     subscribedIds = (subs ?? []).map((s) => s.list_id)
   }
 
+  void profileName // fetched for potential future use
+
   return (
-    <>
-      <SharedHeader
-        showAvatar={!!profileName}
-        profileInitial={profileName?.charAt(0).toUpperCase()}
-        avatarHref="/curator/profiles"
-        showLockButton={true}
-      />
-      <LibraryUI
-        recommendedLists={recommendedLists}
-        communityLists={communityLists}
-        subscribedIds={subscribedIds}
-        communityPage={communityPage}
-        communityTotalPages={communityTotalPages}
-        currentQ={q}
-      />
-    </>
+    <LibraryUI
+      recommendedLists={recommendedLists}
+      communityLists={communityLists}
+      subscribedIds={subscribedIds}
+      communityPage={communityPage}
+      communityTotalPages={communityTotalPages}
+      currentQ={q}
+    />
   )
 }

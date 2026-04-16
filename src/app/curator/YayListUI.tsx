@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { removeListItem, blockItemInOwnList } from './actions'
-import { unsubscribeFromList } from '@/app/library/actions'
+import { unsubscribeFromList } from '@/app/curator/library/actions'
 
 const PREVIEW = 3
 
@@ -349,7 +349,7 @@ export default function YayListUI({ yayChannels, yayVideos, nayVideos, subscribe
         )}
         <div className="mt-8 mb-8 text-center">
           <p className="text-base font-semibold text-black mb-3">Se hvad andre deler i Biblioteket</p>
-          <Link href="/library" className="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 transition-colors">Gå til Bibliotek</Link>
+          <Link href="/curator/library" className="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 transition-colors">Gå til Bibliotek</Link>
         </div>
       </section>
 

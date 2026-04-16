@@ -6,14 +6,14 @@ import { lockCurator } from './actions'
 
 const bottomItems = [
   { href: '/curator', label: 'Oversigt', icon: House },
-  { href: '/library', label: 'Bibliotek', icon: BookOpen },
+  { href: '/curator/library', label: 'Bibliotek', icon: BookOpen },
   { href: '/curator/profiles', label: 'Profiler', icon: Users },
   { href: '/curator/account', label: 'Konto', icon: Settings },
 ]
 
 const sidebarIndhold = [
   { href: '/curator', label: 'Oversigt' },
-  { href: '/library', label: 'Bibliotek' },
+  { href: '/curator/library', label: 'Bibliotek' },
 ]
 
 const sidebarIndstillinger = [

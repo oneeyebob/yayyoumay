@@ -22,6 +22,9 @@ const libreBaskerville = Libre_Baskerville({
 export const metadata: Metadata = {
   title: "YAY!",
   description: "Et kuratorlag oven på YouTube — bygget af forældre, til forældre.",
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({

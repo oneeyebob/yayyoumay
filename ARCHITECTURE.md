@@ -162,12 +162,60 @@ Supabase projekt ref: ebwjikqypiuserpkuhoo
 - /curator/settings: ordfilter + annonceinfo
 
 ### Bibliotek
-- /library: offentlige lister — YayYouMay Anbefaler + Delt af forældre, søgning, abonnér/opsig
+- /curator/library: offentlige lister — YayYouMay Anbefaler + Delt af forældre, søgning, abonnér/opsig (flyttet fra /library)
 
 ### Auth
 - /login: brugernavn + password
 - /register: opret konto → vis hotkey
 - /recover: gendan konto med hotkey
+
+---
+
+## Layout system
+
+### Curator layout
+- `src/app/curator/layout.tsx` — server component wrapping alle /curator routes med topbar, sidebar og bottom nav
+- `src/app/curator/CuratorNav.tsx` — client component med usePathname() for active state
+
+### Topbar
+- Mørk baggrund (#1a1a1a), logo til venstre, Timer/Lock/Avatar ikoner til højre
+- Ikoner fra lucide-react: Timer, Lock, LockOpen, UserCog
+- Lock-knap viser LockOpen når ulåst, Lock når låst
+
+### Sidebar (desktop)
+- Lys baggrund (#f9f9f9), 220px bredde
+- To nav-sektioner: INDHOLD og INDSTILLINGER
+- Log ud knap i bunden
+
+### Bottom nav (mobil)
+- Kun synlig på mobil (md:hidden), fixed position
+- 4 items med lucide ikoner: Oversigt, Bibliotek, Profiler, Konto
+
+---
+
+## Fonte
+
+- Libre Baskerville tilfojet via next/font/google
+- Bruges til h1, h2, h3 ved 200% skriftstorrelse
+
+---
+
+## Login side
+
+- To-kolonne layout: mork venstre (brand), hvid hojre (formular)
+- Brand tekst: "VideoTube til born - af foraeldre til foraeldre."
+
+---
+
+## Auth logik
+
+- Auto-redirect til /curator/profiles/[id] hvis konto har praecis 1 profil
+
+---
+
+## Git checkpoints
+
+- v-alpha-1.0 — stabilt checkpoint for UI-redesign
 
 ---
 

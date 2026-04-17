@@ -2,7 +2,7 @@
 
 > Et kuratorlag oven på YouTube — bygget af forældre, til forældre.
 > App navn: YAY!
-> Domæner: yayoumay.dk / yayoumay.com
+> Domæner: yayyoumay.dk / yayyoumay.com
 > GitHub: oneeyebob/yayyoumay
 
 ---
@@ -260,7 +260,7 @@ Markeret: // DEV NAV — remove before launch i src/app/layout.tsx
 ## Åbne punkter
 
 ### V1 mangler
-- Deploy til Vercel (yayoumay.dk)
+- Deploy til Vercel (yayyoumay.dk)
 - UI/UX polish runde
 - Fjern DEV nav, erstat med rigtig navigation
 

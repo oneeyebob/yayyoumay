@@ -134,9 +134,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
           channels.map((channel) => (
             <Link
               key={channel.ytChannelId}
-              href={`https://www.youtube.com/channel/${channel.ytChannelId}`}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`/channel/${channel.ytChannelId}`}
               className="w-full text-left hover:opacity-80 transition-opacity"
             >
               <div className="relative aspect-video w-full rounded-md overflow-hidden bg-gray-200">

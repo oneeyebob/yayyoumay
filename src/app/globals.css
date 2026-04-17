@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @custom-variant landscape (@media (orientation: landscape));
+@custom-variant tablet-landscape (@media (min-width: 768px) and (max-width: 1279px) and (orientation: landscape));
 
 :root {
   --background: #ffffff;

@@ -156,10 +156,10 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
   )
 
   return (
-    <main className="min-h-screen bg-gray-50 md:landscape:flex md:landscape:flex-row md:landscape:h-screen md:landscape:overflow-hidden">
+    <main className="min-h-screen bg-gray-50 tablet-landscape:flex tablet-landscape:flex-row tablet-landscape:h-screen tablet-landscape:overflow-hidden">
 
       {/* Left column — full width portrait, 75% landscape */}
-      <div className="flex flex-col md:landscape:w-[75%] md:landscape:overflow-y-auto md:landscape:h-full">
+      <div className="flex flex-col tablet-landscape:w-[75%] tablet-landscape:overflow-y-auto tablet-landscape:h-full">
 
         {/* Sticky unit: header + player */}
         <div className="sticky top-0 z-10 bg-white" style={{ paddingBottom: 15 }}>
@@ -182,17 +182,16 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
           </p>
         )}
 
-        {/* Video title/channel + action buttons — landscape only, below player */}
-        {activeVideo && (() => {
-          const meta = videos.find((v) => v.ytVideoId === activeVideo.id)
-          return (
-            <div className="hidden md:landscape:flex items-center justify-between gap-3 px-4 py-2 border-b border-gray-100 bg-white">
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-gray-900 line-clamp-1">{activeVideo.title}</p>
-                {meta?.channelName && (
-                  <p className="text-[11px] text-gray-400 truncate mt-0.5">{meta.channelName}</p>
-                )}
-              </div>
+        {/* Feed — tabs+search always visible, grid hidden in landscape (sidebar takes over) */}
+        <div className="w-full">
+          <JuniorFeed
+            videos={videos}
+            channels={channels}
+            onVideoSelect={(v) => selectVideo(v, { autoLoad: true })}
+            activeVideoId={activeVideo?.id ?? null}
+            initialTab={initialTab}
+            hideGridInLandscape
+            tabsRight={activeVideo ? (
               <div className="flex gap-2 flex-shrink-0">
                 {history.length > 0 && (
                   <button
@@ -213,25 +212,13 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
                   </button>
                 )}
               </div>
-            </div>
-          )
-        })()}
-
-        {/* Feed — tabs+search always visible, grid hidden in landscape (sidebar takes over) */}
-        <div className="w-full">
-          <JuniorFeed
-            videos={videos}
-            channels={channels}
-            onVideoSelect={(v) => selectVideo(v, { autoLoad: true })}
-            activeVideoId={activeVideo?.id ?? null}
-            initialTab={initialTab}
-            hideGridInLandscape
+            ) : undefined}
           />
         </div>
       </div>
 
       {/* Right column — sidebar, only visible in landscape */}
-      <div className="hidden md:landscape:flex md:landscape:flex-col md:landscape:w-[25%] border-l border-gray-100 overflow-y-auto">
+      <div className="hidden tablet-landscape:flex tablet-landscape:flex-col tablet-landscape:w-[25%] border-l border-gray-100 overflow-y-auto">
         <JuniorFeed
           videos={videos}
           channels={channels}

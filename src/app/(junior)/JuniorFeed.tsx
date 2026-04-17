@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useId, useRef } from 'react'
+import { useState, useId, useRef, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -28,13 +28,14 @@ interface JuniorFeedProps {
   initialTab?: Tab
   sidebarMode?: boolean
   hideGridInLandscape?: boolean
+  tabsRight?: ReactNode
 }
 
 type Tab = 'videoer' | 'kanaler'
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function JuniorFeed({ videos, channels, onVideoSelect, activeVideoId, initialTab, sidebarMode, hideGridInLandscape }: JuniorFeedProps) {
+export default function JuniorFeed({ videos, channels, onVideoSelect, activeVideoId, initialTab, sidebarMode, hideGridInLandscape, tabsRight }: JuniorFeedProps) {
   const router = useRouter()
   // Always provide a handler — fallback to router navigation so VideoCard
   // never silently falls through to the <Link> path
@@ -166,7 +167,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
     <div className="px-4 py-4 space-y-4">
 
       {/* ── Tabs + shuffle ────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-2 max-w-xl mx-auto md:landscape:mx-0 w-full">
+      <div className="flex items-center gap-2 max-w-xl mx-auto tablet-landscape:mx-0 w-full">
         <div className="flex-1 flex gap-1 bg-gray-100 rounded-xl p-1" role="tablist" aria-label="Indholdstype">
           {(['videoer', 'kanaler'] as Tab[]).map((t) => {
             const count = t === 'videoer' ? videos.length : channels.length
@@ -193,11 +194,11 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
             )
           })}
         </div>
-
+        {tabsRight}
       </div>
 
       {/* ── Search + autocomplete ──────────────────────────────────────────── */}
-      <div className="relative max-w-xl mx-auto md:landscape:mx-0 w-full">
+      <div className="relative max-w-xl mx-auto tablet-landscape:mx-0 w-full">
         {/* Search icon */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -287,7 +288,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
       </div>
 
       {/* ── Content ───────────────────────────────────────────────────────── */}
-      <div className={hideGridInLandscape ? 'md:landscape:hidden' : undefined}>
+      <div className={hideGridInLandscape ? 'tablet-landscape:hidden' : 'tablet-landscape:block'}>
       {isEmpty ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-4xl mb-4">{tab === 'videoer' ? '🎬' : '📺'}</p>

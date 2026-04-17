@@ -26,6 +26,8 @@ interface JuniorFeedProps {
   onVideoSelect?: (video: { id: string; title: string }) => void
   activeVideoId?: string | null
   initialTab?: Tab
+  controlledTab?: Tab
+  onTabChange?: (t: Tab) => void
   sidebarMode?: boolean
   hideGridInLandscape?: boolean
   tabsRight?: ReactNode
@@ -35,12 +37,13 @@ type Tab = 'videoer' | 'kanaler'
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function JuniorFeed({ videos, channels, onVideoSelect, activeVideoId, initialTab, sidebarMode, hideGridInLandscape, tabsRight }: JuniorFeedProps) {
+export default function JuniorFeed({ videos, channels, onVideoSelect, activeVideoId, initialTab, controlledTab, onTabChange, sidebarMode, hideGridInLandscape, tabsRight }: JuniorFeedProps) {
   const router = useRouter()
   // Always provide a handler — fallback to router navigation so VideoCard
   // never silently falls through to the <Link> path
   const handleVideoSelect = onVideoSelect ?? ((v: { id: string }) => router.push(`/watch/${v.id}`))
   const [tab, setTab] = useState<Tab>(initialTab ?? 'videoer')
+  const activeTab = controlledTab ?? tab
   const [query, setQuery] = useState('')
   const [activeSuggestion, setActiveSuggestion] = useState(-1)
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -68,7 +71,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
   // ── Autocomplete suggestions ─────────────────────────────────────────────
 
   const sourceTitles =
-    tab === 'videoer' ? videos.map((v) => v.title) : channels.map((c) => c.name)
+    activeTab === 'videoer' ? videos.map((v) => v.title) : channels.map((c) => c.name)
 
   const suggestions: string[] = trimmed
     ? [...new Set(sourceTitles.filter((t) => t.toLowerCase().includes(trimmed)))].slice(0, 5)
@@ -89,6 +92,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
 
   function handleTabChange(next: Tab) {
     setTab(next)
+    onTabChange?.(next)
     clearSearch()
   }
 
@@ -119,30 +123,56 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
 
   // ── Derived state ────────────────────────────────────────────────────────
 
-  const isEmpty = tab === 'videoer' ? videos.length === 0 : channels.length === 0
-  const visibleForTab = tab === 'videoer' ? filteredVideos : visibleChannels
+  const isEmpty = activeTab === 'videoer' ? videos.length === 0 : channels.length === 0
+  const visibleForTab = activeTab === 'videoer' ? filteredVideos : visibleChannels
   const noSearchMatch = !isEmpty && visibleForTab.length === 0 && !!trimmed
 
   if (sidebarMode) {
     return (
-      <div className="flex flex-col gap-1 p-2">
-        {videos.map((video) => (
-          <button
-            key={video.ytVideoId}
-            onClick={() => handleVideoSelect({ id: video.ytVideoId, title: video.title })}
-            className="flex gap-2 items-start text-left w-full rounded-lg p-1.5 hover:bg-gray-50 transition-colors"
-          >
-            <div className={[
-              'flex-shrink-0 w-[72px] rounded overflow-hidden',
-              activeVideoId === video.ytVideoId ? 'border-2 border-[#c8e6a0]' : '',
-            ].join(' ')}>
-              <div className="relative aspect-video bg-gray-200">
+      <div className="flex flex-col gap-3 p-2">
+        {activeTab === 'kanaler' ? (
+          channels.map((channel) => (
+            <Link
+              key={channel.ytChannelId}
+              href={`https://www.youtube.com/channel/${channel.ytChannelId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full text-left hover:opacity-80 transition-opacity"
+            >
+              <div className="relative aspect-video w-full rounded-md overflow-hidden bg-gray-200">
+                {channel.thumbnailUrl ? (
+                  <Image
+                    src={channel.thumbnailUrl}
+                    alt={channel.name}
+                    fill
+                    sizes="25vw"
+                    className="object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">📺</div>
+                )}
+              </div>
+              <p className="text-[11px] font-medium text-gray-900 line-clamp-2 mt-1 leading-tight">{channel.name}</p>
+            </Link>
+          ))
+        ) : (
+          videos.map((video) => (
+            <button
+              key={video.ytVideoId}
+              onClick={() => handleVideoSelect({ id: video.ytVideoId, title: video.title })}
+              className="w-full text-left hover:opacity-80 transition-opacity"
+            >
+              <div className={[
+                'relative aspect-video w-full rounded-md overflow-hidden bg-gray-200',
+                activeVideoId === video.ytVideoId ? 'border-2 border-[#c8e6a0]' : '',
+              ].join(' ')}>
                 {video.thumbnailUrl ? (
                   <Image
                     src={video.thumbnailUrl}
                     alt={video.title}
                     fill
-                    sizes="72px"
+                    sizes="25vw"
                     className="object-cover"
                     unoptimized
                   />
@@ -150,15 +180,13 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
                   <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">▶</div>
                 )}
               </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-medium text-gray-900 line-clamp-2 leading-tight">{video.title}</p>
+              <p className="text-[11px] font-medium text-gray-900 line-clamp-2 mt-1 leading-tight">{video.title}</p>
               {video.channelName && (
                 <p className="text-[10px] text-gray-400 truncate mt-0.5">{video.channelName}</p>
               )}
-            </div>
-          </button>
-        ))}
+            </button>
+          ))
+        )}
       </div>
     )
   }
@@ -167,7 +195,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
     <div className="px-4 py-4 space-y-4">
 
       {/* ── Tabs + shuffle ────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-2 max-w-xl mx-auto tablet-landscape:mx-0 w-full">
+      <div className="flex items-center gap-2 max-w-xl mx-auto w-full">
         <div className="flex-1 flex gap-1 bg-gray-100 rounded-xl p-1" role="tablist" aria-label="Indholdstype">
           {(['videoer', 'kanaler'] as Tab[]).map((t) => {
             const count = t === 'videoer' ? videos.length : channels.length
@@ -175,11 +203,11 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
               <button
                 key={t}
                 role="tab"
-                aria-selected={tab === t}
+                aria-selected={activeTab ===t}
                 onClick={() => handleTabChange(t)}
                 className={[
                   'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
-                  tab === t
+                  activeTab ===t
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-500 hover:text-gray-700',
                 ].join(' ')}
@@ -198,7 +226,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
       </div>
 
       {/* ── Search + autocomplete ──────────────────────────────────────────── */}
-      <div className="relative max-w-xl mx-auto tablet-landscape:mx-0 w-full">
+      <div className="relative max-w-xl mx-auto w-full">
         {/* Search icon */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -227,8 +255,8 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
           onFocus={() => { if (query.trim()) setShowSuggestions(true) }}
           onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
           onKeyDown={handleKeyDown}
-          placeholder={tab === 'videoer' ? 'Søg i videoer...' : 'Søg i kanaler...'}
-          aria-label={tab === 'videoer' ? 'Søg i godkendte videoer' : 'Søg i godkendte kanaler'}
+          placeholder={activeTab ==='videoer' ? 'Søg i videoer...' : 'Søg i kanaler...'}
+          aria-label={activeTab ==='videoer' ? 'Søg i godkendte videoer' : 'Søg i godkendte kanaler'}
           aria-autocomplete="list"
           aria-controls={showSuggestions && suggestions.length > 0 ? listboxId : undefined}
           aria-activedescendant={activeSuggestion >= 0 ? `${listboxId}-opt-${activeSuggestion}` : undefined}
@@ -291,9 +319,9 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
       <div className={hideGridInLandscape ? 'tablet-landscape:hidden' : 'tablet-landscape:block'}>
       {isEmpty ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-4xl mb-4">{tab === 'videoer' ? '🎬' : '📺'}</p>
+          <p className="text-4xl mb-4">{activeTab ==='videoer' ? '🎬' : '📺'}</p>
           <p className="text-gray-700 font-medium mb-1">
-            {tab === 'videoer' ? 'Ingen videoer endnu' : 'Ingen kanaler endnu'}
+            {activeTab ==='videoer' ? 'Ingen videoer endnu' : 'Ingen kanaler endnu'}
           </p>
           <p className="text-sm text-gray-400">
             Bed din kurator om at godkende noget indhold.
@@ -307,7 +335,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
           </p>
           <p className="text-sm text-gray-400 mt-1">Prøv et andet søgeord.</p>
         </div>
-      ) : tab === 'videoer' ? (
+      ) : activeTab ==='videoer' ? (
         <div ref={gridRef} className="space-y-3 max-w-4xl mx-auto w-full">
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-4 py-2">

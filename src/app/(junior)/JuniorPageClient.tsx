@@ -29,6 +29,7 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
   const [iframeLoaded, setIframeLoaded] = useState<string | null>(null)
   const [history, setHistory] = useState<ActiveVideo[]>([])
   const [blockConfirm, setBlockConfirm] = useState(false)
+  const [activeTab, setActiveTab] = useState<'videoer' | 'kanaler'>(initialTab ?? 'videoer')
 
   function selectVideo(video: ActiveVideo, { autoLoad = false } = {}) {
     if (video.id !== activeVideo?.id) {
@@ -189,7 +190,8 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
             channels={channels}
             onVideoSelect={(v) => selectVideo(v, { autoLoad: true })}
             activeVideoId={activeVideo?.id ?? null}
-            initialTab={initialTab}
+            controlledTab={activeTab}
+            onTabChange={setActiveTab}
             hideGridInLandscape
             tabsRight={activeVideo ? (
               <div className="flex gap-2 flex-shrink-0">
@@ -224,6 +226,7 @@ export default function JuniorPageClient({ videos, channels, profileName, initia
           channels={channels}
           onVideoSelect={(v) => selectVideo(v, { autoLoad: true })}
           activeVideoId={activeVideo?.id ?? null}
+          controlledTab={activeTab}
           sidebarMode
         />
       </div>

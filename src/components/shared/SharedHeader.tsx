@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
+import { UserCog } from 'lucide-react'
 import { lockCurator } from '@/app/curator/actions'
 
 interface Props {
@@ -83,9 +84,9 @@ export default function SharedHeader({
             <Link
               href="/curator"
               aria-label="Kuratormode"
-              className={`flex items-center justify-center border border-gray-300 rounded-md px-3 py-1 hover:opacity-70 transition-opacity text-base font-light text-gray-900`}
+              className="flex items-center justify-center w-9 h-9 rounded-md bg-white hover:bg-gray-100 transition-colors"
             >
-              Indstil
+              <UserCog size={18} color="#1a1a1a" />
             </Link>
           )}
           {showAvatar && profileInitial && (
@@ -94,7 +95,8 @@ export default function SharedHeader({
                 <button
                   type="submit"
                   aria-label={`Skift profil (${profileInitial})`}
-                  className="w-10 h-10 rounded-full bg-transparent border-2 border-black text-black font-semibold text-2xl flex items-center justify-center hover:bg-indigo-200 active:bg-indigo-300 transition-colors"
+                  className="w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-opacity hover:opacity-80"
+                  style={{ backgroundColor: '#3C3489', color: '#CECBF6' }}
                 >
                   {profileInitial}
                 </button>
@@ -103,14 +105,16 @@ export default function SharedHeader({
               <Link
                 href={avatarHref}
                 aria-label={profileInitial}
-                className="w-10 h-10 rounded-full bg-transparent border-2 border-black text-black font-semibold text-2xl flex items-center justify-center hover:bg-gray-100 transition-colors"
+                className="w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-opacity hover:opacity-80"
+                style={{ backgroundColor: '#3C3489', color: '#CECBF6' }}
               >
                 {profileInitial}
               </Link>
             ) : (
               <div
-                className="w-10 h-10 rounded-full bg-transparent border-2 border-black text-black font-semibold text-2xl flex items-center justify-center"
+                className="w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm"
                 aria-label={profileInitial}
+                style={{ backgroundColor: '#3C3489', color: '#CECBF6' }}
               >
                 {profileInitial}
               </div>

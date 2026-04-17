@@ -26,13 +26,15 @@ interface JuniorFeedProps {
   onVideoSelect?: (video: { id: string; title: string }) => void
   activeVideoId?: string | null
   initialTab?: Tab
+  sidebarMode?: boolean
+  hideGridInLandscape?: boolean
 }
 
 type Tab = 'videoer' | 'kanaler'
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function JuniorFeed({ videos, channels, onVideoSelect, activeVideoId, initialTab }: JuniorFeedProps) {
+export default function JuniorFeed({ videos, channels, onVideoSelect, activeVideoId, initialTab, sidebarMode, hideGridInLandscape }: JuniorFeedProps) {
   const router = useRouter()
   // Always provide a handler — fallback to router navigation so VideoCard
   // never silently falls through to the <Link> path
@@ -120,11 +122,51 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
   const visibleForTab = tab === 'videoer' ? filteredVideos : visibleChannels
   const noSearchMatch = !isEmpty && visibleForTab.length === 0 && !!trimmed
 
+  if (sidebarMode) {
+    return (
+      <div className="flex flex-col gap-1 p-2">
+        {videos.map((video) => (
+          <button
+            key={video.ytVideoId}
+            onClick={() => handleVideoSelect({ id: video.ytVideoId, title: video.title })}
+            className="flex gap-2 items-start text-left w-full rounded-lg p-1.5 hover:bg-gray-50 transition-colors"
+          >
+            <div className={[
+              'flex-shrink-0 w-[72px] rounded overflow-hidden',
+              activeVideoId === video.ytVideoId ? 'border-2 border-[#c8e6a0]' : '',
+            ].join(' ')}>
+              <div className="relative aspect-video bg-gray-200">
+                {video.thumbnailUrl ? (
+                  <Image
+                    src={video.thumbnailUrl}
+                    alt={video.title}
+                    fill
+                    sizes="72px"
+                    className="object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">▶</div>
+                )}
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-medium text-gray-900 line-clamp-2 leading-tight">{video.title}</p>
+              {video.channelName && (
+                <p className="text-[10px] text-gray-400 truncate mt-0.5">{video.channelName}</p>
+              )}
+            </div>
+          </button>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="px-4 py-4 space-y-4">
 
       {/* ── Tabs + shuffle ────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-2 max-w-xl mx-auto w-full">
+      <div className="flex items-center gap-2 max-w-xl mx-auto md:landscape:mx-0 w-full">
         <div className="flex-1 flex gap-1 bg-gray-100 rounded-xl p-1" role="tablist" aria-label="Indholdstype">
           {(['videoer', 'kanaler'] as Tab[]).map((t) => {
             const count = t === 'videoer' ? videos.length : channels.length
@@ -155,7 +197,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
       </div>
 
       {/* ── Search + autocomplete ──────────────────────────────────────────── */}
-      <div className="relative max-w-xl mx-auto w-full">
+      <div className="relative max-w-xl mx-auto md:landscape:mx-0 w-full">
         {/* Search icon */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -245,6 +287,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
       </div>
 
       {/* ── Content ───────────────────────────────────────────────────────── */}
+      <div className={hideGridInLandscape ? 'md:landscape:hidden' : undefined}>
       {isEmpty ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-4xl mb-4">{tab === 'videoer' ? '🎬' : '📺'}</p>
@@ -330,6 +373,7 @@ export default function JuniorFeed({ videos, channels, onVideoSelect, activeVide
           ))}
         </ul>
       )}
+      </div>
     </div>
   )
 }
